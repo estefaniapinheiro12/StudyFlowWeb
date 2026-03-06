@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyFlow — Planejador Acadêmico Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ink: #05080f;
+  --ink2: #0d1220;
+  --ink3: #131b2e;
+  --surface: #161e30;
+  --surface2: #1c2640;
+  --rim: rgba(100,160,255,0.12);
+  --rim2: rgba(100,160,255,0.06);
+  --blue: #4d8ef5;
+  --blue2: #2563eb;
+  --cyan: #06d6c0;
+  --violet: #7c3aed;
+  --rose: #f43f5e;
+  --amber: #f59e0b;
+  --snow: #f0f6ff;
+  --muted: #6b82a8;
+  --muted2: #8fa0c0;
+  --ff-head: 'Clash Display', sans-serif;
+  --ff-body: 'Cabinet Grotesk', sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+}
+
+/* ─── RESET ──────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--ink);
+  color: var(--snow);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ─── CUSTOM CURSOR ──────────────────────────────────── */
+#cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--blue);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.08s, background 0.2s, width 0.2s, height 0.2s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(77,142,245,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.18s cubic-bezier(.25,.46,.45,.94), width 0.2s, height 0.2s, border-color 0.2s;
+}
+a:hover ~ #cursor, button:hover ~ #cursor { width: 16px; height: 16px; }
+
+/* ─── CANVAS BACKGROUND ──────────────────────────────── */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── NAV ────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 60px;
+  background: rgba(5,8,15,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--rim2);
+  transition: padding 0.3s;
+}
+nav.scrolled { padding: 14px 60px; }
+
+.logo {
+  font-family: var(--ff-head);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center; /* isso garante o alinhamento vertical */
+  gap: 10px;
+  text-decoration: none;
+  color: var(--snow);
+  line-height: 1;
+}
+.logo-mark {
+  width: 48px; height: 48px; /* aumenta aqui — tenta 48, 52, 56px */
+  background: none;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+}
+.logo em { color: var(--blue); font-style: normal; }
+
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 0; height: 1px;
+  background: var(--blue);
+  transition: width 0.25s;
+}
+.nav-links a:hover { color: var(--snow); }
+.nav-links a:hover::after { width: 100%; }
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--rim);
+  color: var(--muted2);
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-family: var(--ff-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: none;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--blue); color: var(--snow); }
+
+.btn-glow {
+  background: var(--blue);
+  border: none;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: var(--ff-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: none;
+  transition: all 0.2s;
+  box-shadow: 0 0 24px rgba(77,142,245,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-glow:hover { transform: translateY(-1px); box-shadow: 0 0 40px rgba(77,142,245,0.5); }
+.btn-glow:hover::before { opacity: 1; }
+
+/* ─── HERO ───────────────────────────────────────────── */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 140px 60px 80px;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  top: 30%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 900px; height: 600px;
+  background: radial-gradient(ellipse, rgba(77,142,245,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(77,142,245,0.08);
+  border: 1px solid rgba(77,142,245,0.2);
+  border-radius: 100px;
+  padding: 7px 18px 7px 10px;
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  animation: fadeUp 0.7s ease both;
+}
+.chip-icon {
+  background: var(--blue);
+  color: white;
+  width: 22px; height: 22px;
+  border-radius: 100px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  background: var(--cyan);
+  border-radius: 50%;
+  animation: blink 1.8s ease infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; box-shadow: 0 0 6px var(--cyan); }
+  50% { opacity: 0.4; box-shadow: none; }
+}
+
+.hero-h1 {
+  font-family: var(--ff-head);
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -3px;
+  margin-bottom: 28px;
+  animation: fadeUp 0.7s 0.1s ease both;
+}
+.hero-h1 .word-study { color: var(--snow); }
+.hero-h1 .word-flow {
+  background: linear-gradient(120deg, var(--blue) 0%, var(--cyan) 50%, var(--violet) 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-sub-line {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+  animation: fadeUp 0.7s 0.15s ease both;
+}
+.hero-tagline {
+  font-size: clamp(16px, 2vw, 21px);
+  color: var(--muted2);
+  line-height: 1.65;
+  max-width: 560px;
+  font-weight: 400;
+  margin-bottom: 52px;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  animation: fadeUp 0.7s 0.3s ease both;
+  margin-bottom: 80px;
+}
+
+.btn-hero {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  border: none;
+  color: white;
+  padding: 16px 36px;
+  border-radius: 12px;
+  font-family: var(--ff-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: none;
+  transition: all 0.25s;
+  box-shadow: 0 8px 40px rgba(77,142,245,0.3), 0 0 0 1px rgba(77,142,245,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.btn-hero::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(transparent, rgba(255,255,255,0.06), transparent);
+  animation: spin 3s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-hero:hover { transform: translateY(-3px); box-shadow: 0 16px 60px rgba(77,142,245,0.45); }
+
+.btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--rim);
+  color: var(--muted2);
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-family: var(--ff-body);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: none;
+  transition: all 0.25s;
+}
+.btn-outline:hover { border-color: rgba(100,160,255,0.3); color: var(--snow); background: var(--rim2); }
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  animation: fadeUp 0.7s 0.4s ease both;
+}
+.hero-stat { text-align: center; }
+.hero-stat-num {
+  font-family: var(--ff-head);
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--snow), var(--muted2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+.hero-stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 4px; letter-spacing: 0.5px; }
+.stat-divider { width: 1px; background: var(--rim); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SCREEN MOCKUP ──────────────────────────────────── */
+.mockup-section {
+  position: relative;
+  z-index: 1;
+  padding: 0 60px 120px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mockup-glow {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 400px;
+  background: radial-gradient(ellipse, rgba(77,142,245,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.screen-frame {
+  background: var(--ink2);
+  border: 1px solid var(--rim);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(77,142,245,0.06),
+    0 40px 100px rgba(0,0,0,0.6),
+    0 0 180px rgba(77,142,245,0.06);
+  animation: floatUp 1s 0.5s ease both;
+}
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(60px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.screen-bar {
+  background: var(--ink3);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--rim2);
+}
+.mac-dot { width: 12px; height: 12px; border-radius: 50%; }
+.mac-dot.r { background: #ff5f57; }
+.mac-dot.y { background: #febc2e; }
+.mac-dot.g { background: #28c840; }
+.screen-url {
+  margin-left: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--rim2);
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex: 1;
+  max-width: 340px;
+}
+
+/* DASHBOARD INTERIOR */
+.dash {
+  display: grid;
+  grid-template-columns: 210px 1fr 270px;
+  min-height: 500px;
+}
+
+/* SIDEBAR */
+.dash-sidebar {
+  background: var(--ink3);
+  border-right: 1px solid var(--rim2);
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+}
+.ds-profile {
+  padding: 0 18px 20px;
+  border-bottom: 1px solid var(--rim2);
+  margin-bottom: 12px;
+}
+.ds-avatar {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.ds-name { font-family: var(--ff-head); font-size: 13px; font-weight: 600; }
+.ds-role { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.ds-section { padding: 10px 18px 6px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+.ds-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+}
+.ds-item.on { color: var(--blue); background: rgba(77,142,245,0.07); border-left-color: var(--blue); }
+.ds-item:hover:not(.on) { color: var(--snow); background: rgba(255,255,255,0.025); }
+.ds-ic { font-size: 14px; }
+
+.ds-footer {
+  margin-top: auto;
+  padding: 14px 18px 0;
+  border-top: 1px solid var(--rim2);
+}
+.ds-streak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.streak-fire { font-size: 16px; }
+.streak-num { font-family: var(--ff-head); font-size: 16px; color: var(--amber); }
+
+/* MAIN */
+.dash-main { padding: 20px; overflow: hidden; }
+
+.dm-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.dm-title { font-family: var(--ff-head); font-size: 17px; font-weight: 700; }
+.dm-date { font-size: 11px; color: var(--muted); }
+.dm-week-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.dm-week-nav button {
+  width: 26px; height: 26px;
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  color: var(--muted);
+  border-radius: 6px;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* CALENDAR */
+.cal {
+  display: grid;
+  grid-template-columns: 42px repeat(5, 1fr);
+  gap: 2px;
+  margin-bottom: 16px;
+}
+.cal-head { font-size: 9px; text-align: center; color: var(--muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 4px; }
+.cal-time { font-size: 9px; color: var(--muted); text-align: right; padding-right: 6px; line-height: 28px; }
+.cal-cell { height: 28px; border-radius: 5px; border: 1px solid transparent; background: rgba(255,255,255,0.018); }
+.cal-cell.blk {
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  font-size: 9px;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+}
+.blk-mat { background: rgba(77,142,245,0.18); color: #7bb3ff; }
+.blk-fis { background: rgba(124,58,237,0.18); color: #a78bfa; }
+.blk-prg { background: rgba(6,214,192,0.15); color: #34d399; }
+.blk-est { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px dashed rgba(245,158,11,0.3) !important; }
+
+/* STATS */
+.dm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dm-stat {
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.dm-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.dm-stat-val { font-family: var(--ff-head); font-size: 18px; font-weight: 700; }
+.v-blue { color: var(--blue); }
+.v-cyan { color: var(--cyan); }
+.v-violet { color: #a78bfa; }
+
+/* RIGHT PANEL */
+.dash-right {
+  border-left: 1px solid var(--rim2);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+.dr-title {
+  font-family: var(--ff-head);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.dr-title a { font-family: var(--ff-body); font-size: 10px; color: var(--blue); font-weight: 400; cursor: pointer; }
+
+.task {
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 7px;
+}
+.task-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 7px; }
+.task-name { font-size: 11px; font-weight: 600; }
+.task-date { font-size: 9px; color: var(--muted); margin-top: 2px; }
+.tag { font-size: 8px; padding: 2px 7px; border-radius: 100px; font-weight: 600; }
+.tag-red { background: rgba(244,63,94,0.12); color: #fb7185; }
+.tag-amb { background: rgba(245,158,11,0.12); color: #fbbf24; }
+.tag-grn { background: rgba(6,214,160,0.12); color: var(--cyan); }
+.prog { height: 3px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 100px; }
+.pf-b { background: linear-gradient(90deg, var(--blue), var(--violet)); }
+.pf-g { background: linear-gradient(90deg, var(--cyan), #059669); }
+.pf-o { background: linear-gradient(90deg, var(--amber), #f59e0b); }
+.prog-meta { display: flex; justify-content: flex-end; margin-top: 4px; font-size: 9px; color: var(--muted); }
+
+/* AI CARD */
+.ai-card {
+  background: linear-gradient(135deg, rgba(77,142,245,0.07), rgba(124,58,237,0.07));
+  border: 1px solid rgba(77,142,245,0.18);
+  border-radius: 12px;
+  padding: 12px;
+}
+.ai-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ai-pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: blink 2s infinite;
+}
+.ai-label { font-size: 11px; font-weight: 600; }
+.ai-sub { font-size: 9px; color: var(--muted); }
+.ai-text { font-size: 10px; color: var(--muted2); line-height: 1.6; margin-bottom: 10px; }
+.ai-text strong { color: var(--blue); font-weight: 600; }
+.ai-btn {
+  width: 100%;
+  background: rgba(77,142,245,0.1);
+  border: 1px solid rgba(77,142,245,0.18);
+  color: var(--blue);
+  padding: 7px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 600;
+}
+.ai-btn:hover { background: rgba(77,142,245,0.18); }
+
+/* ─── SCROLL REVEAL ─────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ─── SECTION LABELS ────────────────────────────────── */
+.sec-eyebrow {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blue);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.sec-heading {
+  font-family: var(--ff-head);
+  font-size: clamp(30px, 4.5vw, 52px);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.sec-sub {
+  text-align: center;
+  color: var(--muted2);
+  font-size: 16px;
+  max-width: 520px;
+  margin: 0 auto 72px;
+  line-height: 1.65;
+}
+
+/* ─── HOW IT WORKS ──────────────────────────────────── */
+.how {
+  position: relative;
+  z-index: 1;
+  padding: 120px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 36px; left: 60px; right: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rim), var(--rim), transparent);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+.step-num {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  display: grid;
+  place-items: center;
+  font-family: var(--ff-head);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s;
+}
+.step:hover .step-num {
+  background: var(--blue);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0 30px rgba(77,142,245,0.4);
+}
+.step-icon { font-size: 28px; }
+.step-title { font-family: var(--ff-head); font-size: 15px; font-weight: 700; }
+.step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ─── FEATURES ───────────────────────────────────────── */
+.features {
+  position: relative;
+  z-index: 1;
+  padding: 120px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.feat-card {
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  border-radius: 18px;
+  padding: 30px;
+  transition: all 0.3s cubic-bezier(.25,.46,.45,.94);
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+}
+.feat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feat-card:hover { transform: translateY(-6px) scale(1.01); border-color: rgba(77,142,245,0.25); }
+.feat-card:hover::before { opacity: 1; }
+
+.feat-card.f1::before { background: radial-gradient(circle at top left, rgba(77,142,245,0.08), transparent 60%); }
+.feat-card.f2::before { background: radial-gradient(circle at top left, rgba(124,58,237,0.08), transparent 60%); }
+.feat-card.f3::before { background: radial-gradient(circle at top left, rgba(6,214,192,0.06), transparent 60%); }
+.feat-card.f4::before { background: radial-gradient(circle at top left, rgba(245,158,11,0.06), transparent 60%); }
+.feat-card.f5::before { background: radial-gradient(circle at top left, rgba(244,63,94,0.06), transparent 60%); }
+.feat-card.f6::before { background: radial-gradient(circle at top left, rgba(251,191,36,0.06), transparent 60%); }
+
+.feat-icon-wrap {
+  width: 48px; height: 48px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+.fi-blue { background: rgba(77,142,245,0.12); }
+.fi-violet { background: rgba(124,58,237,0.12); }
+.fi-cyan { background: rgba(6,214,192,0.1); }
+.fi-amber { background: rgba(245,158,11,0.1); }
+.fi-rose { background: rgba(244,63,94,0.1); }
+.fi-yellow { background: rgba(251,191,36,0.1); }
+
+.feat-title { font-family: var(--ff-head); font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.feat-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.feat-tag {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 10px;
+  font-family: var(--ff-mono);
+  color: var(--muted);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--rim2);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+
+/* ─── TECH STACK ─────────────────────────────────────── */
+.tech-section {
+  position: relative;
+  z-index: 1;
+  padding: 100px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tech-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tech-card {
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  transition: all 0.25s;
+}
+.tech-card:hover { border-color: rgba(77,142,245,0.25); transform: translateY(-3px); }
+.tech-emoji { font-size: 32px; }
+.tech-name { font-family: var(--ff-head); font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.tech-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.tech-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 9px;
+  font-family: var(--ff-mono);
+  color: var(--cyan);
+  background: rgba(6,214,192,0.07);
+  border: 1px solid rgba(6,214,192,0.15);
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+/* ─── CTA BANNER ─────────────────────────────────────── */
+.cta-section {
+  position: relative;
+  z-index: 1;
+  padding: 80px 60px 120px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-box {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 24px;
+  padding: 72px 60px;
+  position: relative;
+  overflow: hidden;
+}
+.cta-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(77,142,245,0.08), transparent 70%);
+}
+.cta-box::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+}
+.cta-h { font-family: var(--ff-head); font-size: clamp(28px, 4vw, 46px); font-weight: 700; letter-spacing: -1.5px; margin-bottom: 18px; position: relative; z-index: 1; }
+.cta-p { color: var(--muted2); font-size: 16px; margin-bottom: 36px; position: relative; z-index: 1; line-height: 1.65; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; position: relative; z-index: 1; }
+
+/* ─── FOOTER ─────────────────────────────────────────── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--rim2);
+  padding: 48px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.foot-logo { font-family: var(--ff-head); font-size: 17px; font-weight: 700; }
+.foot-logo em { color: var(--blue); font-style: normal; }
+.foot-copy { font-size: 12px; color: var(--muted); }
+.foot-mono { font-family: var(--ff-mono); font-size: 11px; color: var(--muted); opacity: 0.5; }
+
+/* ─── DIVIDER ─────────────────────────────────────────── */
+.section-divider {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 60px;
+}
+.section-divider hr {
+  border: none;
+  border-top: 1px solid var(--rim2);
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 960px) {
+  nav { padding: 18px 24px; }
+  .nav-links, .btn-ghost { display: none; }
+  .hero { padding: 120px 24px 60px; }
+  .hero-h1 { letter-spacing: -2px; }
+  .hero-stats { gap: 28px; }
+  .mockup-section { padding: 0 24px 80px; }
+  .dash { grid-template-columns: 1fr; }
+  .dash-sidebar, .dash-right { display: none; }
+  .how, .features, .tech-section, .cta-section { padding-left: 24px; padding-right: 24px; }
+  .steps { grid-template-columns: repeat(2,1fr); }
+  .steps::before { display: none; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .tech-cards { grid-template-columns: 1fr; }
+  .cta-box { padding: 48px 24px; }
+  .cta-btns { flex-direction: column; align-items: center; }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">
+    <div class="logo-mark">
+  <img src="logo.png" alt="StudyFlow" style="width:100%; height:100%; object-fit:contain; display:block;">
+    </div>
+    Study<em>Flow</em>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#como-funciona">Como funciona</a></li>
+    <li><a href="#tecnologia">Tecnologia</a></li>
+    <li><a href="#sobre">Sobre</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="studyflow-login.html" class="btn-ghost" style="text-decoration:none;">Entrar / Cadastrar</a>
+    <button class="btn-glow">Baixar app ↓</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="chip">
+    <span class="chip-icon">🤖</span>
+    Planejador Acadêmico com IA
+    <div class="live-dot"></div>
+  </div>
+
+  <p class="hero-sub-line">Projeto Integrador · TCC 2026</p>
+  <h1 class="hero-h1">
+    <span class="word-study">Study</span><span class="word-flow">Flow</span><br>
+    Estude mais.<br>Aprenda melhor.
+  </h1>
+  <p class="hero-tagline">
+    O planejador semanal inteligente que usa Inteligência Artificial para organizar seus estudos, acompanhar atividades e te levar ao seu potencial máximo.
+  </p>
+
+  <div class="hero-cta">
+    <button class="btn-hero">
+      <span>⬇</span> Baixar para Android
+    </button>
+    <a href="studyflow-login.html" class="btn-outline" style="text-decoration:none;">
+      <span>🌐</span> Usar no site
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-num">6+</span>
+      <div class="hero-stat-label">Funcionalidades</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">IA</span>
+      <div class="hero-stat-label">Integrada</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">100%</span>
+      <div class="hero-stat-label">Gratuito</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">Android</span>
+      <div class="hero-stat-label">Kotlin nativo</div>
+    </div>
+  </div>
+</section>
+
+<!-- MOCKUP -->
+<section class="mockup-section">
+  <div class="mockup-glow"></div>
+  <div class="screen-frame">
+    <div class="screen-bar">
+      <div class="mac-dot r"></div>
+      <div class="mac-dot y"></div>
+      <div class="mac-dot g"></div>
+      <div class="screen-url">studyflow.app / dashboard</div>
+    </div>
+    <div class="dash">
+      <!-- SIDEBAR -->
+      <div class="dash-sidebar">
+        <div class="ds-profile">
+          <div class="ds-avatar">👤</div>
+          <div class="ds-name">João Silva</div>
+          <div class="ds-role">3° Ano · Técnico em TI</div>
+        </div>
+        <div class="ds-section">Principal</div>
+        <div class="ds-item on"><span class="ds-ic">📅</span> Semana</div>
+        <div class="ds-item"><span class="ds-ic">✅</span> Atividades</div>
+        <div class="ds-item"><span class="ds-ic">📊</span> Dashboard</div>
+        <div class="ds-section">Ferramentas</div>
+        <div class="ds-item"><span class="ds-ic">🤖</span> Assistente IA</div>
+        <div class="ds-item"><span class="ds-ic">💬</span> Chat</div>
+        <div class="ds-item"><span class="ds-ic">⚙️</span> Configurações</div>
+        <div class="ds-footer">
+          <div class="ds-streak">
+            <span class="streak-fire">🔥</span>
+            <span class="streak-num">12</span>
+            <span>dias seguidos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="dash-main">
+        <div class="dm-top">
+          <div>
+            <div class="dm-title">Semana Atual</div>
+            <div class="dm-date">03 – 07 Mar, 2026</div>
+          </div>
+          <div class="dm-week-nav">
+            <button>‹</button>
+            <button>›</button>
+          </div>
+        </div>
+
+        <div class="cal">
+          <div class="cal-head"></div>
+          <div class="cal-head">SEG</div>
+          <div class="cal-head">TER</div>
+          <div class="cal-head">QUA</div>
+          <div class="cal-head">QUI</div>
+          <div class="cal-head">SEX</div>
+
+          <div class="cal-time">07h</div>
+          <div class="cal-cell blk blk-mat">Matemática</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-mat">Matemática</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-mat">Matemática</div>
+
+          <div class="cal-time">08h</div>
+          <div class="cal-cell blk blk-fis">Física</div>
+          <div class="cal-cell blk blk-prg">Prog.</div>
+          <div class="cal-cell blk blk-fis">Física</div>
+          <div class="cal-cell blk blk-prg">Prog.</div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time">09h</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-est">📌 Estudo</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-est">📌 Estudo</div>
+          <div class="cal-cell blk blk-prg">Prog.</div>
+
+          <div class="cal-time">10h</div>
+          <div class="cal-cell blk blk-est">📌 Estudo</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-est">📌 Estudo</div>
+
+          <div class="cal-time">11h</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-fis">Física</div>
+          <div class="cal-cell blk blk-prg">Prog.</div>
+          <div class="cal-cell blk blk-mat">Matemática</div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time">13h</div>
+          <div class="cal-cell blk blk-prg">Prog.</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-est">📌 Estudo</div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell blk blk-fis">Física</div>
+        </div>
+
+        <div class="dm-stats">
+          <div class="dm-stat">
+            <div class="dm-stat-label">Horas estudadas</div>
+            <div class="dm-stat-val v-blue">18h</div>
+          </div>
+          <div class="dm-stat">
+            <div class="dm-stat-label">Tarefas</div>
+            <div class="dm-stat-val v-cyan">7/10</div>
+          </div>
+          <div class="dm-stat">
+            <div class="dm-stat-label">Progresso</div>
+            <div class="dm-stat-val v-violet">72%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="dash-right">
+        <div>
+          <div class="dr-title">Atividades <a>Ver todas</a></div>
+
+          <div class="task">
+            <div class="task-row">
+              <div>
+                <div class="task-name">Trabalho de Física</div>
+                <div class="task-date">Entrega: 08 Mar</div>
+              </div>
+              <div class="tag tag-red">Urgente</div>
+            </div>
+            <div class="prog"><div class="prog-fill pf-o" style="width:45%"></div></div>
+            <div class="prog-meta">45%</div>
+          </div>
+
+          <div class="task">
+            <div class="task-row">
+              <div>
+                <div class="task-name">Prova de Programação</div>
+                <div class="task-date">Entrega: 12 Mar</div>
+              </div>
+              <div class="tag tag-amb">Em breve</div>
+            </div>
+            <div class="prog"><div class="prog-fill pf-b" style="width:70%"></div></div>
+            <div class="prog-meta">70%</div>
+          </div>
+
+          <div class="task">
+            <div class="task-row">
+              <div>
+                <div class="task-name">Resumo de Matemática</div>
+                <div class="task-date">Entrega: 20 Mar</div>
+              </div>
+              <div class="tag tag-grn">No prazo</div>
+            </div>
+            <div class="prog"><div class="prog-fill pf-g" style="width:90%"></div></div>
+            <div class="prog-meta">90%</div>
+          </div>
+        </div>
+
+        <div class="ai-card">
+          <div class="ai-top">
+            <div class="ai-pulse"></div>
+            <div>
+              <div class="ai-label">Assistente IA</div>
+              <div class="ai-sub">Online agora</div>
+            </div>
+          </div>
+          <div class="ai-text">
+            Você tem <strong>3 horários livres</strong> amanhã. Recomendo <strong>09h–11h</strong> para o Trabalho de Física — entrega em 2 dias!
+          </div>
+          <button class="ai-btn">💬 Perguntar ao assistente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="section-divider"><hr></div>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="como-funciona">
+  <p class="sec-eyebrow reveal">Como funciona</p>
+  <h2 class="sec-heading reveal reveal-delay-1">Simples de usar,<br>poderoso por dentro</h2>
+  <p class="sec-sub reveal reveal-delay-2">Em 4 passos você tem um planejador completo e inteligente funcionando no seu Android.</p>
+
+  <div class="steps">
+    <div class="step reveal reveal-delay-1">
+      <div class="step-num">01</div>
+      <div class="step-icon">📝</div>
+      <div class="step-title">Cadastre suas aulas</div>
+      <div class="step-desc">Adicione sua grade horária fixa com matérias, professores e horários.</div>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <div class="step-num">02</div>
+      <div class="step-icon">📋</div>
+      <div class="step-title">Adicione atividades</div>
+      <div class="step-desc">Registre trabalhos e provas com prazos, matéria e nível de dificuldade.</div>
+    </div>
+    <div class="step reveal reveal-delay-3">
+      <div class="step-num">03</div>
+      <div class="step-icon">🤖</div>
+      <div class="step-title">A IA planeja por você</div>
+      <div class="step-desc">O assistente analisa seus horários livres e distribui o tempo de estudo ideal.</div>
+    </div>
+    <div class="step reveal reveal-delay-4">
+      <div class="step-num">04</div>
+      <div class="step-icon">🏆</div>
+      <div class="step-title">Acompanhe seu progresso</div>
+      <div class="step-desc">Veja estatísticas, streaks de estudo e evolução semana a semana.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="section-divider"><hr></div>
+
+<!-- FEATURES -->
+<section class="features" id="funcionalidades">
+  <p class="sec-eyebrow reveal">Funcionalidades</p>
+  <h2 class="sec-heading reveal reveal-delay-1">Tudo que você precisa<br>em um só app</h2>
+  <p class="sec-sub reveal reveal-delay-2">Ferramentas pensadas especificamente para estudantes do ensino técnico e superior.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card f1 reveal reveal-delay-1">
+      <div class="feat-icon-wrap fi-blue">📅</div>
+      <div class="feat-title">Grade Semanal Visual</div>
+      <div class="feat-desc">Visualize toda a semana numa grade horária interativa com blocos coloridos por matéria, com suporte a arrastar e reorganizar.</div>
+      <span class="feat-tag">schedule_view</span>
+    </div>
+    <div class="feat-card f2 reveal reveal-delay-2">
+      <div class="feat-icon-wrap fi-violet">✅</div>
+      <div class="feat-title">Gestão de Atividades</div>
+      <div class="feat-desc">Trabalhos e provas com barras de progresso visuais, prazos em destaque, tags por matéria e alertas de urgência automáticos.</div>
+      <span class="feat-tag">task_manager</span>
+    </div>
+    <div class="feat-card f3 reveal reveal-delay-3">
+      <div class="feat-icon-wrap fi-cyan">🤖</div>
+      <div class="feat-title">Assistente IA</div>
+      <div class="feat-desc">Tire dúvidas, gere resumos de conteúdos, receba técnicas de estudo personalizadas e planos de revisão baseados em IA.</div>
+      <span class="feat-tag">ai_assistant</span>
+    </div>
+    <div class="feat-card f4 reveal reveal-delay-1">
+      <div class="feat-icon-wrap fi-amber">⏰</div>
+      <div class="feat-title">Cronograma Inteligente</div>
+      <div class="feat-desc">A IA detecta seus horários livres e distribui automaticamente sessões de estudo baseadas em prazos e dificuldade de cada atividade.</div>
+      <span class="feat-tag">smart_schedule</span>
+    </div>
+    <div class="feat-card f5 reveal reveal-delay-2">
+      <div class="feat-icon-wrap fi-rose">💬</div>
+      <div class="feat-title">Chat por Atividade</div>
+      <div class="feat-desc">Sistema de comentários vinculado a cada atividade para comunicação com colegas e professores diretamente no contexto certo.</div>
+      <span class="feat-tag">activity_chat</span>
+    </div>
+    <div class="feat-card f6 reveal reveal-delay-3">
+      <div class="feat-icon-wrap fi-yellow">📊</div>
+      <div class="feat-title">Dashboard Analítico</div>
+      <div class="feat-desc">Estatísticas de horas estudadas, tarefas concluídas, streaks de produtividade e gráficos de evolução semanal e mensal.</div>
+      <span class="feat-tag">analytics</span>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="section-divider"><hr></div>
+
+<!-- TECH -->
+<section class="tech-section" id="tecnologia">
+  <p class="sec-eyebrow reveal">Tecnologia</p>
+  <h2 class="sec-heading reveal reveal-delay-1">Stack moderno<br>e profissional</h2>
+  <p class="sec-sub reveal reveal-delay-2">Desenvolvido com as mesmas tecnologias usadas em grandes empresas de tecnologia do mercado.</p>
+
+  <div class="tech-cards">
+    <div class="tech-card reveal reveal-delay-1">
+      <div class="tech-emoji">🤖</div>
+      <div>
+        <div class="tech-name">Kotlin + Android Studio</div>
+        <div class="tech-desc">App nativo Android desenvolvido em Kotlin, a linguagem oficial do Google para Android, com arquitetura MVVM e Jetpack.</div>
+        <span class="tech-badge">mobile / frontend</span>
+      </div>
+    </div>
+    <div class="tech-card reveal reveal-delay-2">
+      <div class="tech-emoji">⚙️</div>
+      <div>
+        <div class="tech-name">Spring Boot</div>
+        <div class="tech-desc">API REST robusta com Spring Boot, responsável pela lógica de negócio, autenticação e integração com o assistente de IA.</div>
+        <span class="tech-badge">backend / api</span>
+      </div>
+    </div>
+    <div class="tech-card reveal reveal-delay-3">
+      <div class="tech-emoji">🗄️</div>
+      <div>
+        <div class="tech-name">Banco de Dados</div>
+        <div class="tech-desc">Armazenamento de dados estruturado para usuários, atividades, agendamentos e histórico de interações com a IA.</div>
+        <span class="tech-badge">data / persistence</span>
+      </div>
+    </div>
+    <div class="tech-card reveal reveal-delay-4">
+      <div class="tech-emoji">✨</div>
+      <div>
+        <div class="tech-name">Inteligência Artificial</div>
+        <div class="tech-desc">Integração com modelos de linguagem para o assistente inteligente, geração de cronogramas e sugestões personalizadas.</div>
+        <span class="tech-badge">ai / llm</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="sobre">
+  <div class="cta-box reveal">
+    <h2 class="cta-h">Pronto para organizar<br>seus estudos?</h2>
+    <p class="cta-p">Projeto de Conclusão de Curso Técnico em Informática — 2026.<br>Desenvolvido com dedicação para te ajudar a ir mais longe.</p>
+    <div class="cta-btns">
+      <button class="btn-hero">⬇ Baixar para Android</button>
+      <a href="studyflow-login.html" class="btn-outline" style="text-decoration:none;">🌐 Usar no site</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">Study<em>Flow</em></div>
+  <div class="foot-copy">Projeto Integrador · Curso Técnico em TI · 2026</div>
+  <div class="foot-mono">kotlin · spring boot · android studio</div>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+/* ─── CURSOR ─────────────────────────────────────── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top = my + 'px';
+});
+
+function animateRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+document.querySelectorAll('a, button, .feat-card, .tech-card, .step').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cur.style.width = '18px';
+    cur.style.height = '18px';
+    ring.style.width = '52px';
+    ring.style.height = '52px';
+    ring.style.borderColor = 'rgba(77,142,245,0.6)';
+  });
+  el.addEventListener('mouseleave', () => {
+    cur.style.width = '10px';
+    cur.style.height = '10px';
+    ring.style.width = '36px';
+    ring.style.height = '36px';
+    ring.style.borderColor = 'rgba(77,142,245,0.4)';
+  });
+});
+
+/* ─── CANVAS PARTICLES ───────────────────────────── */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['rgba(77,142,245,', 'rgba(124,58,237,', 'rgba(6,214,192,'];
+
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.4 + 0.4,
+    dx: (Math.random() - 0.5) * 0.25,
+    dy: (Math.random() - 0.5) * 0.25,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    alpha: Math.random() * 0.4 + 0.1,
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.x += p.dx; p.y += p.dy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color + p.alpha + ')';
+    ctx.fill();
+  });
+
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(77,142,245,${0.06 * (1 - dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ─── SCROLL EFFECTS ────────────────────────────── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 80) nav.classList.add('scrolled');
+  else nav.classList.remove('scrolled');
+});
+
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.15 });
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
