@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudyFlow — Planejador Acadêmico Inteligente</title>
-<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── TOKENS ─────────────────────────────────────────── */
 :root {
@@ -24,7 +24,7 @@
   --snow: #f0f6ff;
   --muted: #6b82a8;
   --muted2: #8fa0c0;
-  --ff-head: 'Clash Display', sans-serif;
+  --ff-head: 'Space Grotesk', sans-serif;
   --ff-body: 'Cabinet Grotesk', sans-serif;
   --ff-mono: 'JetBrains Mono', monospace;
 }
@@ -97,23 +97,19 @@ nav.scrolled { padding: 14px 60px; }
   font-weight: 700;
   letter-spacing: -0.5px;
   display: flex;
-  align-items: center; /* isso garante o alinhamento vertical */
+  align-items: center;
   gap: 10px;
   text-decoration: none;
   color: var(--snow);
-  line-height: 1;
 }
 .logo-mark {
-  width: 48px; height: 48px; /* aumenta aqui — tenta 48, 52, 56px */
-  background: none;
-  border-radius: 50%;
-  overflow: hidden;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
   flex-shrink: 0;
-  align-self: center;
 }
 .logo em { color: var(--blue); font-style: normal; }
 
@@ -943,10 +939,8 @@ footer {
 
 <!-- NAV -->
 <nav id="nav">
-  <a href="#" class="logo">
-    <div class="logo-mark">
-  <img src="logo.png" alt="StudyFlow" style="width:100%; height:100%; object-fit:contain; display:block;">
-    </div>
+  <a href="index.html" class="logo">
+    <div class="logo-mark" style="background:none;overflow:hidden;padding:0;"><img src="logo.png" alt="StudyFlow" style="width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:screen;"></div>
     Study<em>Flow</em>
   </a>
   <ul class="nav-links">
@@ -956,7 +950,7 @@ footer {
     <li><a href="#sobre">Sobre</a></li>
   </ul>
   <div class="nav-right">
-    <a href="studyflow-login.html" class="btn-ghost" style="text-decoration:none;">Entrar / Cadastrar</a>
+    <a href="login.html" class="btn-ghost" style="text-decoration:none;">Entrar / Cadastrar</a>
     <button class="btn-glow">Baixar app ↓</button>
   </div>
 </nav>
@@ -984,7 +978,7 @@ footer {
     <button class="btn-hero">
       <span>⬇</span> Baixar para Android
     </button>
-    <a href="studyflow-login.html" class="btn-outline" style="text-decoration:none;">
+    <a href="login.html" class="btn-outline" style="text-decoration:none;">
       <span>🌐</span> Usar no site
     </a>
   </div>
@@ -1325,7 +1319,7 @@ footer {
     <p class="cta-p">Projeto de Conclusão de Curso Técnico em Informática — 2026.<br>Desenvolvido com dedicação para te ajudar a ir mais longe.</p>
     <div class="cta-btns">
       <button class="btn-hero">⬇ Baixar para Android</button>
-      <a href="studyflow-login.html" class="btn-outline" style="text-decoration:none;">🌐 Usar no site</a>
+      <a href="login.html" class="btn-outline" style="text-decoration:none;">🌐 Usar no site</a>
     </div>
   </div>
 </section>

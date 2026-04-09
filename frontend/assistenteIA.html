@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyFlow — Assistente IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #05080f;
+  --ink2: #0d1220;
+  --surface: #161e30;
+  --surface2: #1c2640;
+  --rim: rgba(100,160,255,0.12);
+  --rim2: rgba(100,160,255,0.06);
+  --blue: #4d8ef5;
+  --cyan: #06d6c0;
+  --violet: #7c3aed;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+  --green: #10b981;
+  --snow: #f0f6ff;
+  --muted: #6b82a8;
+  --muted2: #8fa0c0;
+  --ff-head: 'Space Grotesk', sans-serif;
+  --ff-body: 'Cabinet Grotesk', sans-serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:var(--ff-body);
+  background:var(--ink);
+  color:var(--snow);
+  display:flex;
+  cursor:none;
+  overflow:hidden;
+}
+
+#cursor{position:fixed;width:10px;height:10px;background:var(--blue);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s;mix-blend-mode:screen;}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(77,142,245,.35);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;height:100vh;background:var(--ink2);border-right:1px solid var(--rim2);display:flex;flex-direction:column;flex-shrink:0;position:relative;z-index:10;}
+.sb-logo{padding:24px 20px;border-bottom:1px solid var(--rim2);display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--snow);}
+.sb-logo-mark{width:34px;height:34px;background:none;border-radius:0;overflow:visible;display:grid;place-items:center;flex-shrink:0;}
+.sb-logo-text{font-family:var(--ff-head);font-size:17px;font-weight:700;}
+.sb-logo-text em{color:var(--blue);font-style:normal;}
+.sb-profile{padding:20px;border-bottom:1px solid var(--rim2);}
+.sb-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--violet));display:grid;place-items:center;font-size:20px;margin-bottom:10px;}
+.sb-name{font-family:var(--ff-head);font-size:14px;font-weight:600;}
+.sb-role{font-size:11px;color:var(--muted);margin-top:3px;}
+.sb-section{padding:16px 20px 6px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:var(--muted);cursor:none;border-left:2px solid transparent;transition:all .15s;text-decoration:none;}
+.sb-item:hover{color:var(--snow);background:rgba(255,255,255,.025);}
+.sb-item.active{color:var(--blue);background:rgba(77,142,245,.07);border-left-color:var(--blue);}
+.sb-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--rim2);}
+.sb-streak{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.streak-num{font-family:var(--ff-head);font-size:18px;color:var(--amber);font-weight:700;}
+
+/* ── CHAT LAYOUT ── */
+.chat-layout{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;}
+
+/* ── CHAT HEADER ── */
+.chat-header{
+  padding:18px 28px;
+  border-bottom:1px solid var(--rim2);
+  background:rgba(5,8,15,.8);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.chat-header-left{display:flex;align-items:center;gap:14px;}
+.ai-avatar{
+  width:42px;height:42px;border-radius:13px;
+  background:linear-gradient(135deg,var(--blue),var(--violet));
+  display:grid;place-items:center;position:relative;flex-shrink:0;
+}
+.ai-online{position:absolute;bottom:-3px;right:-3px;width:11px;height:11px;background:var(--cyan);border-radius:50%;border:2px solid var(--ink2);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,214,192,.4);}50%{box-shadow:0 0 0 5px rgba(6,214,192,0);}}
+.chat-header-info h2{font-family:var(--ff-head);font-size:16px;font-weight:700;}
+.chat-header-info p{font-size:11px;color:var(--cyan);display:flex;align-items:center;gap:5px;margin-top:2px;}
+.status-dot{width:6px;height:6px;background:var(--cyan);border-radius:50%;animation:pulse 2s infinite;}
+.header-actions{display:flex;gap:8px;}
+.hbtn{width:34px;height:34px;border-radius:9px;background:var(--surface);border:1px solid var(--rim2);display:grid;place-items:center;cursor:none;transition:all .2s;color:var(--muted);}
+.hbtn:hover{border-color:var(--rim);color:var(--snow);}
+
+/* ── MESSAGES ── */
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  scroll-behavior:smooth;
+}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-track{background:transparent;}
+.messages::-webkit-scrollbar-thumb{background:var(--rim);border-radius:100px;}
+
+/* ── MESSAGE ROWS ── */
+.msg-row{display:flex;gap:12px;animation:msgIn .35s cubic-bezier(.25,.46,.45,.94) both;}
+.msg-row.user{flex-direction:row-reverse;}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.msg-avatar{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;font-size:16px;align-self:flex-end;}
+.msg-avatar.ai-av{background:linear-gradient(135deg,var(--blue),var(--violet));}
+.msg-avatar.user-av{background:linear-gradient(135deg,rgba(77,142,245,.2),rgba(124,58,237,.2));border:1px solid var(--rim);}
+
+.msg-content{max-width:72%;display:flex;flex-direction:column;gap:4px;}
+.msg-row.user .msg-content{align-items:flex-end;}
+
+.bubble{
+  padding:13px 16px;border-radius:16px;
+  font-size:14px;line-height:1.65;
+  position:relative;
+}
+.bubble.ai{
+  background:var(--surface);
+  border:1px solid var(--rim2);
+  border-bottom-left-radius:4px;
+  color:var(--snow);
+}
+.bubble.user{
+  background:linear-gradient(135deg,rgba(77,142,245,.18),rgba(124,58,237,.15));
+  border:1px solid rgba(77,142,245,.2);
+  border-bottom-right-radius:4px;
+  color:var(--snow);
+}
+.bubble p{margin-bottom:8px;}
+.bubble p:last-child{margin-bottom:0;}
+.bubble strong{color:var(--snow);font-weight:700;}
+.bubble code{font-family:var(--ff-mono);font-size:12px;background:rgba(77,142,245,.1);padding:2px 6px;border-radius:4px;color:var(--cyan);}
+.bubble ul{padding-left:18px;display:flex;flex-direction:column;gap:4px;}
+.bubble li{font-size:14px;line-height:1.5;}
+
+.msg-time{font-size:10px;color:var(--muted);padding:0 4px;}
+
+/* ── TYPING INDICATOR ── */
+.typing-row{display:flex;gap:12px;animation:msgIn .3s ease both;}
+.typing-bubble{
+  background:var(--surface);border:1px solid var(--rim2);
+  border-radius:16px;border-bottom-left-radius:4px;
+  padding:14px 18px;display:flex;align-items:center;gap:5px;
+}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:typing .9s infinite;}
+.typing-dot:nth-child(2){animation-delay:.2s;}
+.typing-dot:nth-child(3){animation-delay:.4s;}
+@keyframes typing{0%,100%{opacity:.3;transform:translateY(0);}50%{opacity:1;transform:translateY(-4px);}}
+
+/* ── SUGGESTIONS ── */
+.suggestions{display:flex;gap:8px;flex-wrap:wrap;padding:0 28px 16px;flex-shrink:0;}
+.suggest-chip{
+  padding:8px 14px;border-radius:100px;
+  background:var(--surface);border:1px solid var(--rim2);
+  font-size:12px;font-weight:500;color:var(--muted2);
+  cursor:none;transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.suggest-chip:hover{border-color:rgba(77,142,245,.3);color:var(--blue);background:rgba(77,142,245,.06);}
+
+/* ── INPUT BAR ── */
+.input-bar{
+  padding:16px 28px 20px;
+  border-top:1px solid var(--rim2);
+  background:rgba(5,8,15,.6);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;
+}
+.input-wrap{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface);border:1px solid var(--rim2);
+  border-radius:16px;padding:10px 12px;
+  transition:all .2s;
+}
+.input-wrap:focus-within{border-color:rgba(77,142,245,.35);box-shadow:0 0 0 3px rgba(77,142,245,.08);}
+.msg-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--ff-body);font-size:14px;color:var(--snow);
+  resize:none;max-height:120px;min-height:22px;
+  caret-color:var(--blue);line-height:1.5;
+}
+.msg-input::placeholder{color:var(--muted);}
+.input-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.ibtn{width:32px;height:32px;border-radius:9px;background:transparent;border:1px solid transparent;display:grid;place-items:center;cursor:none;transition:all .2s;color:var(--muted);}
+.ibtn:hover{background:var(--surface2);border-color:var(--rim2);color:var(--snow);}
+.send-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--violet));
+  border:none;display:grid;place-items:center;
+  cursor:none;transition:all .2s;
+  box-shadow:0 4px 14px rgba(77,142,245,.3);
+  flex-shrink:0;
+}
+.send-btn:hover{transform:scale(1.07);box-shadow:0 6px 20px rgba(77,142,245,.45);}
+.send-btn:active{transform:scale(.96);}
+.send-btn:disabled{opacity:.4;pointer-events:none;}
+.input-hint{font-size:10px;color:var(--muted);margin-top:8px;text-align:center;}
+
+/* ── WELCOME ── */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;flex:1;text-align:center;padding:40px;
+  animation:fadeUp .5s ease both;
+}
+.welcome-icon{
+  width:72px;height:72px;border-radius:22px;
+  background:linear-gradient(135deg,var(--blue),var(--violet));
+  display:grid;place-items:center;
+  margin-bottom:24px;
+  box-shadow:0 8px 32px rgba(77,142,245,.3);
+  animation:float 3s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.welcome h2{font-family:var(--ff-head);font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px;}
+.welcome p{font-size:14px;color:var(--muted2);max-width:380px;line-height:1.6;margin-bottom:28px;}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:440px;width:100%;}
+.qa-btn{
+  padding:14px 16px;border-radius:14px;
+  background:var(--surface);border:1px solid var(--rim2);
+  text-align:left;cursor:none;transition:all .2s;
+  display:flex;flex-direction:column;gap:5px;
+}
+.qa-btn:hover{border-color:rgba(77,142,245,.25);background:var(--surface2);transform:translateY(-2px);}
+.qa-icon{font-size:20px;}
+.qa-title{font-size:12px;font-weight:700;font-family:var(--ff-head);}
+.qa-sub{font-size:11px;color:var(--muted);}
+
+/* ── CONTEXT CHIPS ── */
+.context-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 28px;border-bottom:1px solid var(--rim2);
+  flex-shrink:0;overflow-x:auto;
+}
+.context-bar::-webkit-scrollbar{display:none;}
+.ctx-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
+.ctx-chip{
+  padding:5px 12px;border-radius:100px;
+  background:rgba(77,142,245,.08);border:1px solid rgba(77,142,245,.15);
+  font-size:11px;color:var(--blue);font-weight:600;
+  cursor:none;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;
+}
+.ctx-chip:hover{background:rgba(77,142,245,.15);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:860px){.sidebar{display:none;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a href="index.html" class="sb-logo">
+    <div class="sb-logo-mark"><img src="logo.png" alt="StudyFlow" style="width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:screen;"></div>
+    <span class="sb-logo-text">Study<em>Flow</em></span>
+  </a>
+  <div class="sb-profile">
+    <div class="sb-avatar">👤</div>
+    <div class="sb-name">Estefânia Pinheiro</div>
+    <div class="sb-role">3° Ano · Técnico em TI</div>
+  </div>
+  <div class="sb-section">Principal</div>
+  <a href="#" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Semana</a>
+  <a href="telaAtividades.html" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Atividades</a>
+  <a href="dashboardPrincipal.html" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Dashboard</a>
+  <div class="sb-section">Ferramentas</div>
+  <a href="#" class="sb-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg> Assistente IA</a>
+  <a href="#" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Chat</a>
+  <a href="configuracoesPerfil.html" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> Perfil</a>
+  <a href="dashboardAnalitico.html" class="sb-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Analytics</a>
+  <div class="sb-footer">
+    <div class="sb-streak"><span>🔥</span><span class="streak-num">12</span><span>dias seguidos</span></div>
+  </div>
+</aside>
+
+<!-- CHAT -->
+<div class="chat-layout">
+
+  <!-- HEADER -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="ai-avatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+        <div class="ai-online"></div>
+      </div>
+      <div class="chat-header-info">
+        <h2>Flow ✦ Assistente IA</h2>
+        <p><div class="status-dot"></div> Online · pronto para ajudar</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" title="Limpar conversa" onclick="clearChat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+      <button class="hbtn" title="Informações">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTEXT BAR -->
+  <div class="context-bar">
+    <span class="ctx-label">Contexto:</span>
+    <div class="ctx-chip">📚 3° Ano TI</div>
+    <div class="ctx-chip">⚠️ 3 atividades urgentes</div>
+    <div class="ctx-chip">🔥 Sequência 12 dias</div>
+    <div class="ctx-chip">📊 74% conclusão este mês</div>
+    <div class="ctx-chip">🕐 Melhor horário: 19h–21h</div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages">
+    <!-- Welcome shown initially -->
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      </div>
+      <h2>Olá, Estefânia! Sou o Flow ✦</h2>
+      <p>Seu assistente de estudos com IA. Posso ajudar com planejamento, técnicas de estudo, dúvidas das matérias e muito mais.</p>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="sendQuick('Quais minhas atividades urgentes hoje?')">
+          <div class="qa-icon">⚠️</div>
+          <div class="qa-title">Atividades urgentes</div>
+          <div class="qa-sub">Ver o que precisa de atenção</div>
+        </button>
+        <button class="qa-btn" onclick="sendQuick('Crie um plano de estudos para essa semana')">
+          <div class="qa-icon">📅</div>
+          <div class="qa-title">Plano da semana</div>
+          <div class="qa-sub">Organizar minha agenda</div>
+        </button>
+        <button class="qa-btn" onclick="sendQuick('Me explique Eletrostática de forma simples')">
+          <div class="qa-icon">⚡</div>
+          <div class="qa-title">Explicar matéria</div>
+          <div class="qa-sub">Tirar dúvidas de conteúdo</div>
+        </button>
+        <button class="qa-btn" onclick="sendQuick('Quais técnicas de estudo você recomenda para provas?')">
+          <div class="qa-icon">🧠</div>
+          <div class="qa-title">Técnicas de estudo</div>
+          <div class="qa-sub">Melhorar meu desempenho</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUGGESTIONS -->
+  <div class="suggestions" id="suggestions" style="display:none">
+    <button class="suggest-chip" onclick="sendQuick('Me dê mais detalhes')">💬 Me dê mais detalhes</button>
+    <button class="suggest-chip" onclick="sendQuick('Crie um cronograma para isso')">📅 Criar cronograma</button>
+    <button class="suggest-chip" onclick="sendQuick('Como posso melhorar nisso?')">📈 Como melhorar?</button>
+    <button class="suggest-chip" onclick="sendQuick('Quais matérias preciso focar mais?')">🎯 Focar em quê?</button>
+  </div>
+
+  <!-- INPUT BAR -->
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea
+        class="msg-input"
+        id="msg-input"
+        placeholder="Pergunte ao Flow sobre seus estudos..."
+        rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <div class="input-actions">
+        <button class="ibtn" title="Anexar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="input-hint">Flow usa IA para responder · as respostas são geradas automaticamente</div>
+  </div>
+
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
+document.addEventListener('mouseover',e=>{
+  if(e.target.closest('a,button,textarea,.qa-btn,.suggest-chip,.ctx-chip,.hbtn,.ibtn,.send-btn')){
+    cur.style.width='16px';cur.style.height='16px';ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(77,142,245,.55)';
+  } else {
+    cur.style.width='10px';cur.style.height='10px';ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(77,142,245,.35)';
+  }
+});
+
+/* ── CONTEXT ── */
+const CONTEXT = {
+  aluna: 'Estefânia Pinheiro',
+  curso: '3° Ano Técnico em TI',
+  atividades_urgentes: [
+    { titulo: 'Lista de exercícios cap. 5', materia: 'Matemática', prazo: 'hoje' },
+    { titulo: 'Prova de Física — Eletrostática', materia: 'Física', prazo: 'amanhã' },
+    { titulo: 'Seminário de Redes', materia: 'Redes', prazo: 'em 3 dias' },
+  ],
+  streak: 12,
+  taxa_conclusao: '74%',
+  melhor_horario: '19h–21h',
+  materias: ['Matemática', 'Física', 'Química', 'Programação', 'Banco de Dados', 'Redes', 'Português', 'Inglês'],
+};
+
+const SYSTEM_PROMPT = `Você é o Flow, assistente de IA educacional do StudyFlow — um app de planejamento acadêmico para estudantes técnicos.
+
+Contexto da aluna:
+- Nome: ${CONTEXT.aluna}
+- Curso: ${CONTEXT.curso}
+- Atividades urgentes: ${CONTEXT.atividades_urgentes.map(a=>`"${a.titulo}" (${a.materia}, prazo: ${a.prazo})`).join(', ')}
+- Sequência de estudo: ${CONTEXT.streak} dias consecutivos
+- Taxa de conclusão do mês: ${CONTEXT.taxa_conclusao}
+- Melhor horário de estudo: ${CONTEXT.melhor_horario}
+- Matérias: ${CONTEXT.materias.join(', ')}
+
+Instruções:
+- Responda SEMPRE em português brasileiro
+- Seja direto, amigável e encorajador como um tutor pessoal
+- Use emojis com moderação para deixar o texto mais vivo
+- Formate respostas com markdown quando útil (listas, negrito)
+- Priorize sempre o contexto acadêmico da aluna
+- Quando sugerir cronogramas, considere o melhor horário de estudo dela (${CONTEXT.melhor_horario})
+- Seja conciso mas completo — respostas entre 3 e 8 parágrafos ou listas
+- Nunca invente informações sobre matérias não listadas no contexto`;
+
+/* ── CHAT STATE ── */
+let history = [];
+let isLoading = false;
+
+/* ── TIME ── */
+function now(){
+  const d=new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* ── RENDER MD (basic) ── */
+function renderMd(text){
+  return text
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/^### (.+)$/gm,'<strong style="font-size:13px;color:var(--blue)">$1</strong>')
+    .replace(/^## (.+)$/gm,'<strong style="font-size:14px;color:var(--snow)">$1</strong>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>(\n|$))+/g, m=>`<ul>${m}</ul>`)
+    .split('\n\n').map(p=>p.startsWith('<ul>')||p.startsWith('<strong')?p:`<p>${p}</p>`).join('');
+}
+
+/* ── ADD MESSAGE ── */
+function addMessage(role, text){
+  const welcome=document.getElementById('welcome');
+  if(welcome) welcome.remove();
+
+  document.getElementById('suggestions').style.display='flex';
+
+  const msgs=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className=`msg-row ${role}`;
+
+  const avatar=role==='ai'
+    ? `<div class="msg-avatar ai-av"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div>`
+    : `<div class="msg-avatar user-av">👤</div>`;
+
+  const content = role==='ai' ? renderMd(text) : `<p>${text.replace(/</g,'&lt;')}</p>`;
+
+  row.innerHTML=`
+    ${avatar}
+    <div class="msg-content">
+      <div class="bubble ${role}">${content}</div>
+      <div class="msg-time">${now()}</div>
+    </div>`;
+
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+/* ── TYPING ── */
+function showTyping(){
+  const msgs=document.getElementById('messages');
+  const el=document.createElement('div');
+  el.className='typing-row';el.id='typing-indicator';
+  el.innerHTML=`
+    <div class="msg-avatar ai-av"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div>
+    <div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function hideTyping(){
+  const el=document.getElementById('typing-indicator');
+  if(el)el.remove();
+}
+
+/* ── SEND ── */
+async function sendMessage(){
+  if(isLoading)return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
+  if(!text)return;
+
+  input.value='';
+  input.style.height='auto';
+  isLoading=true;
+  document.getElementById('send-btn').disabled=true;
+
+  addMessage('user',text);
+  history.push({role:'user',content:text});
+
+  showTyping();
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:SYSTEM_PROMPT,
+        messages:history,
+      })
+    });
+    const data=await res.json();
+    hideTyping();
+
+    const reply=data.content?.[0]?.text||'Desculpe, não consegui gerar uma resposta. Tente novamente.';
+    history.push({role:'assistant',content:reply});
+    addMessage('ai',reply);
+
+  } catch(err){
+    hideTyping();
+    addMessage('ai','⚠️ Não foi possível conectar ao assistente agora. Verifique sua conexão e tente novamente.');
+  }
+
+  isLoading=false;
+  document.getElementById('send-btn').disabled=false;
+  input.focus();
+}
+
+function sendQuick(text){
+  document.getElementById('msg-input').value=text;
+  sendMessage();
+}
+
+/* ── KEY HANDLER ── */
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+}
+
+/* ── AUTO RESIZE ── */
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+/* ── CLEAR ── */
+function clearChat(){
+  if(!confirm('Limpar toda a conversa?'))return;
+  history=[];
+  const msgs=document.getElementById('messages');
+  msgs.innerHTML=`
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      </div>
+      <h2>Olá, Estefânia! Sou o Flow ✦</h2>
+      <p>Seu assistente de estudos com IA. Posso ajudar com planejamento, técnicas de estudo, dúvidas das matérias e muito mais.</p>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="sendQuick('Quais minhas atividades urgentes hoje?')"><div class="qa-icon">⚠️</div><div class="qa-title">Atividades urgentes</div><div class="qa-sub">Ver o que precisa de atenção</div></button>
+        <button class="qa-btn" onclick="sendQuick('Crie um plano de estudos para essa semana')"><div class="qa-icon">📅</div><div class="qa-title">Plano da semana</div><div class="qa-sub">Organizar minha agenda</div></button>
+        <button class="qa-btn" onclick="sendQuick('Me explique Eletrostática de forma simples')"><div class="qa-icon">⚡</div><div class="qa-title">Explicar matéria</div><div class="qa-sub">Tirar dúvidas de conteúdo</div></button>
+        <button class="qa-btn" onclick="sendQuick('Quais técnicas de estudo você recomenda para provas?')"><div class="qa-icon">🧠</div><div class="qa-title">Técnicas de estudo</div><div class="qa-sub">Melhorar meu desempenho</div></button>
+      </div>
+    </div>`;
+  document.getElementById('suggestions').style.display='none';
+}
+</script>
+</body>
+</html>
