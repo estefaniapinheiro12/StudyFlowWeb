@@ -56,7 +56,6 @@ body {
   transition: width 0.2s, height 0.2s, border-color 0.2s;
 }
 
-/* ── SIDEBAR ── */
 .sidebar {
   width: 240px; min-height: 100vh;
   background: var(--ink2); border-right: 1px solid var(--rim2);
@@ -88,17 +87,13 @@ body {
 .sb-item:hover { color: var(--snow); background: rgba(255,255,255,0.025); }
 .sb-item.active { color: var(--blue); background: rgba(77,142,245,0.07); border-left-color: var(--blue); }
 .sb-badge { background: var(--rose); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 100px; font-family: var(--ff-mono); }
-.sb-badge-amber { background: var(--amber); }
 .sb-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--rim2); }
 .sb-streak { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .streak-num { font-family: var(--ff-head); font-size: 18px; color: var(--amber); font-weight: 700; }
 
-/* ── MAIN ── */
 .main { margin-left: 240px; flex: 1; padding: 36px 40px; min-height: 100vh; max-width: calc(100vw - 240px); }
 
-/* ── TOP BAR ── */
 .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
-.greeting { }
 .greeting-time { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
 .greeting h1 { font-family: var(--ff-head); font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 .greeting h1 span { color: var(--blue); }
@@ -109,14 +104,8 @@ body {
 .notif-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; border: 2px solid var(--ink); }
 .date-chip { background: var(--surface); border: 1px solid var(--rim2); border-radius: 10px; padding: 9px 14px; font-size: 12px; color: var(--muted2); font-family: var(--ff-mono); display: flex; align-items: center; gap: 7px; }
 
-/* ── STATS ROW ── */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-.stat-card {
-  background: var(--surface); border: 1px solid var(--rim2);
-  border-radius: 16px; padding: 20px 22px;
-  animation: fadeUp 0.5s ease both; position: relative; overflow: hidden;
-  transition: all 0.2s; cursor: none;
-}
+.stat-card { background: var(--surface); border: 1px solid var(--rim2); border-radius: 16px; padding: 20px 22px; animation: fadeUp 0.5s ease both; position: relative; overflow: hidden; transition: all 0.2s; cursor: none; }
 .stat-card:hover { border-color: var(--rim); transform: translateY(-2px); }
 .stat-card::after { content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px; border-radius: 0 16px 0 60px; opacity: 0.06; }
 .stat-card.c-blue::after { background: var(--blue); }
@@ -134,28 +123,17 @@ body {
 .trend-up { color: var(--green); }
 .trend-down { color: var(--rose); }
 
-/* ── GRID LAYOUT ── */
 .grid-main { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 20px; }
 .grid-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-/* ── CARD BASE ── */
-.card {
-  background: var(--surface); border: 1px solid var(--rim2);
-  border-radius: 16px; padding: 24px;
-  animation: fadeUp 0.5s ease both;
-}
+.card { background: var(--surface); border: 1px solid var(--rim2); border-radius: 16px; padding: 24px; animation: fadeUp 0.5s ease both; }
 .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .card-title { font-family: var(--ff-head); font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .card-action { font-size: 12px; color: var(--blue); cursor: none; text-decoration: none; font-weight: 600; transition: opacity 0.2s; }
 .card-action:hover { opacity: 0.7; }
 
-/* ── WEEK STRIP ── */
 .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 6px; }
-.week-day {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 6px; padding: 12px 6px; border-radius: 12px;
-  border: 1px solid transparent; transition: all 0.2s; cursor: none;
-}
+.week-day { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; cursor: none; }
 .week-day:hover { background: var(--surface2); border-color: var(--rim2); }
 .week-day.today { background: rgba(77,142,245,0.08); border-color: rgba(77,142,245,0.25); }
 .wd-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
@@ -166,14 +144,8 @@ body {
 .wd-bar-wrap { width: 100%; height: 3px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
 .wd-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--blue), var(--cyan)); transition: width 0.6s ease; }
 
-/* ── TODAY TASKS ── */
 .today-tasks { display: flex; flex-direction: column; gap: 8px; }
-.task-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; background: var(--surface2);
-  border: 1px solid var(--rim2); border-radius: 10px;
-  transition: all 0.18s; cursor: none;
-}
+.task-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--rim2); border-radius: 10px; transition: all 0.18s; cursor: none; }
 .task-item:hover { border-color: var(--rim); }
 .task-item.done-task { opacity: 0.45; }
 .task-check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--rim); flex-shrink: 0; display: grid; place-items: center; cursor: none; transition: all 0.18s; }
@@ -191,22 +163,6 @@ body {
 .tp-green { background: rgba(16,185,129,0.1); color: var(--green); }
 .tp-blue { background: rgba(77,142,245,0.1); color: var(--blue); }
 
-/* ── MINI CALENDAR / AI PANEL ── */
-.ai-panel { display: flex; flex-direction: column; gap: 14px; }
-.ai-card {
-  background: linear-gradient(135deg, rgba(77,142,245,0.07), rgba(124,58,237,0.07));
-  border: 1px solid rgba(77,142,245,0.15);
-  border-radius: 14px; padding: 18px;
-}
-.ai-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.ai-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, var(--blue), var(--violet)); display: grid; place-items: center; }
-.ai-title { font-family: var(--ff-head); font-size: 14px; font-weight: 700; }
-.ai-sub { font-size: 11px; color: var(--muted); }
-.ai-tip { font-size: 13px; color: var(--muted2); line-height: 1.55; margin-bottom: 14px; }
-.ai-tip strong { color: var(--snow); }
-.btn-ai { width: 100%; padding: 10px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--ff-body); cursor: none; background: rgba(77,142,245,0.12); border: 1px solid rgba(77,142,245,0.2); color: var(--blue); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-.btn-ai:hover { background: rgba(77,142,245,0.2); }
-
 .mini-stats { display: flex; flex-direction: column; gap: 10px; }
 .mini-stat-row { display: flex; align-items: center; justify-content: space-between; }
 .mini-stat-label { font-size: 12px; color: var(--muted); }
@@ -214,7 +170,6 @@ body {
 .mini-stat-bar { height: 100%; border-radius: 100px; transition: width 0.7s ease; }
 .mini-stat-val { font-size: 12px; font-family: var(--ff-mono); color: var(--muted2); width: 32px; text-align: right; }
 
-/* ── MATERIA CHART ── */
 .materia-list { display: flex; flex-direction: column; gap: 12px; }
 .materia-row { display: flex; align-items: center; gap: 12px; }
 .mat-color { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
@@ -223,14 +178,8 @@ body {
 .mat-bar { height: 100%; border-radius: 100px; transition: width 0.8s ease; }
 .mat-count { font-size: 12px; font-family: var(--ff-mono); color: var(--muted); width: 20px; text-align: right; }
 
-/* ── UPCOMING ── */
 .upcoming-list { display: flex; flex-direction: column; gap: 8px; }
-.upcoming-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border-radius: 10px;
-  background: var(--surface2); border: 1px solid var(--rim2);
-  transition: all 0.18s; cursor: none;
-}
+.upcoming-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--rim2); transition: all 0.18s; cursor: none; }
 .upcoming-item:hover { border-color: var(--rim); }
 .upcoming-date { text-align: center; flex-shrink: 0; width: 36px; }
 .upcoming-day { font-family: var(--ff-head); font-size: 18px; font-weight: 700; line-height: 1; }
@@ -240,27 +189,19 @@ body {
 .upcoming-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .upcoming-badge { padding: 3px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; white-space: nowrap; }
 
-/* ── CHART BARS ── */
 .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; padding-top: 10px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
 .bar-fill { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.7s cubic-bezier(.25,.46,.45,.94); min-height: 3px; }
-.bar-label { font-size: 10px; color: var(--muted); font-weight: 600; }
-.bar-val { font-size: 10px; font-family: var(--ff-mono); color: var(--muted2); }
 
-/* ── PROGRESS RING ── */
 .ring-wrap { display: flex; align-items: center; gap: 20px; margin-bottom: 18px; }
 .ring-svg { transform: rotate(-90deg); }
 .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
 .ring-fg { fill: none; stroke: url(#ringGrad); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.25,.46,.45,.94); }
-.ring-info { }
 .ring-pct { font-family: var(--ff-head); font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
 .ring-pct span { font-size: 14px; color: var(--muted); font-weight: 400; }
 .ring-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 1100px) { .grid-main { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
@@ -276,12 +217,9 @@ body {
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <a href="index.html" class="sb-logo">
-    <div class="sb-logo-mark">
-      <img src="logo.png" alt="StudyFlow" style="width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:screen;">
-    </div>
+    <div class="sb-logo-mark"><img src="logo.png" alt="StudyFlow" style="width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:screen;"></div>
     <span class="sb-logo-text">Study<em>Flow</em></span>
   </a>
   <div class="sb-profile">
@@ -293,39 +231,33 @@ body {
     <div class="sb-role">3° Ano · Técnico em TI</div>
   </div>
   <div class="sb-section">Principal</div>
-  <a href="#" class="sb-item">
+  <a href="gradeSemanal.html" class="sb-item">
     <div class="sb-item-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Semana
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Grade Semanal
     </div>
   </a>
   <a href="telaAtividades.html" class="sb-item">
     <div class="sb-item-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Atividades
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Lista de Tarefas
     </div>
-    <span class="sb-badge">5</span>
   </a>
-  <a href="#" class="sb-item active">
+  <a href="dashboardPrincipal.html" class="sb-item active">
     <div class="sb-item-left">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg> Dashboard
     </div>
   </a>
   <div class="sb-section">Ferramentas</div>
-  <a href="#" class="sb-item">
-    <div class="sb-item-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg> Assistente IA
-    </div>
-  </a>
-  <a href="#" class="sb-item">
-    <div class="sb-item-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Chat
-    </div>
-    <span class="sb-badge sb-badge-amber">2</span>
-  </a>
-  <a href="configuracoesPerfil.html" class="sb-item">
-    <div class="sb-item-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> Perfil
-    </div>
-  </a>
+
+ <a href="dashboardAnalitico.html" class="sb-item">
+  <div class="sb-item-left">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg> Analytics
+  </div>
+</a>
+<a href="configuraçoesPerfil.html" class="sb-item">
+  <div class="sb-item-left">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> Perfil
+  </div>
+</a>
   <div class="sb-footer">
     <div class="sb-streak">
       <span>🔥</span><span class="streak-num">12</span><span>dias seguidos</span>
@@ -333,10 +265,7 @@ body {
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
-
-  <!-- TOP BAR -->
   <div class="top-bar">
     <div class="greeting">
       <div class="greeting-time" id="greeting-time">—</div>
@@ -355,48 +284,35 @@ body {
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="stats-row">
     <div class="stat-card c-blue" style="animation-delay:0s">
-      <div class="stat-icon ic-blue">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      </div>
-      <div class="stat-val" id="s-total">8</div>
+      <div class="stat-icon ic-blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="stat-val" id="s-total">0</div>
       <div class="stat-label">Atividades totais</div>
-      <div class="stat-trend trend-up">↑ 2 novas esta semana</div>
+      <div class="stat-trend trend-up">↑ esta semana</div>
     </div>
     <div class="stat-card c-amber" style="animation-delay:0.06s">
-      <div class="stat-icon ic-amber">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
-      <div class="stat-val" id="s-pending">6</div>
+      <div class="stat-icon ic-amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-val" id="s-pending">0</div>
       <div class="stat-label">Pendentes</div>
-      <div class="stat-trend trend-down">3 com prazo esta semana</div>
+      <div class="stat-trend trend-down">aguardando conclusão</div>
     </div>
     <div class="stat-card c-rose" style="animation-delay:0.12s">
-      <div class="stat-icon ic-rose">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div class="stat-val" id="s-urgent">3</div>
+      <div class="stat-icon ic-rose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="stat-val" id="s-urgent">0</div>
       <div class="stat-label">Urgentes</div>
       <div class="stat-trend trend-down">prazo em até 2 dias</div>
     </div>
     <div class="stat-card c-green" style="animation-delay:0.18s">
-      <div class="stat-icon ic-green">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="stat-val" id="s-done">2</div>
+      <div class="stat-icon ic-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-val" id="s-done">0</div>
       <div class="stat-label">Concluídas</div>
       <div class="stat-trend trend-up">↑ esta semana</div>
     </div>
   </div>
 
-  <!-- MAIN GRID -->
   <div class="grid-main">
-
-    <!-- WEEK + TODAY TASKS -->
     <div>
-      <!-- WEEK STRIP -->
       <div class="card" style="margin-bottom:20px; animation-delay:0.1s">
         <div class="card-head">
           <div class="card-title">
@@ -408,7 +324,6 @@ body {
         <div class="week-strip" id="week-strip"></div>
       </div>
 
-      <!-- TODAY TASKS -->
       <div class="card" style="animation-delay:0.15s">
         <div class="card-head">
           <div class="card-title">
@@ -421,10 +336,7 @@ body {
       </div>
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="ai-panel">
-
-      <!-- PROGRESS RING -->
+    <div>
       <div class="card" style="animation-delay:0.12s">
         <div class="card-head">
           <div class="card-title">
@@ -450,32 +362,10 @@ body {
         </div>
         <div class="mini-stats" id="mini-stats-list"></div>
       </div>
-
-      <!-- AI TIP -->
-      <div class="ai-card" style="animation-delay:0.2s">
-        <div class="ai-head">
-          <div class="ai-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
-          </div>
-          <div>
-            <div class="ai-title">Assistente IA</div>
-            <div class="ai-sub">Dica personalizada</div>
-          </div>
-        </div>
-        <div class="ai-tip" id="ai-tip">Carregando sugestão...</div>
-        <button class="btn-ai">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Abrir assistente
-        </button>
-      </div>
-
     </div>
   </div>
 
-  <!-- BOTTOM GRID -->
   <div class="grid-bottom">
-
-    <!-- PRÓXIMOS PRAZOS -->
     <div class="card" style="animation-delay:0.2s">
       <div class="card-head">
         <div class="card-title">
@@ -487,7 +377,6 @@ body {
       <div class="upcoming-list" id="upcoming-list"></div>
     </div>
 
-    <!-- DISTRIBUIÇÃO POR MATÉRIA -->
     <div class="card" style="animation-delay:0.25s">
       <div class="card-head">
         <div class="card-title">
@@ -495,19 +384,15 @@ body {
           Por matéria
         </div>
       </div>
-      <!-- BAR CHART -->
       <div class="bar-chart" id="bar-chart"></div>
       <div style="display:flex;justify-content:space-around;margin-top:6px;" id="bar-labels"></div>
       <div style="height:16px"></div>
       <div class="materia-list" id="materia-list"></div>
     </div>
-
   </div>
-
 </main>
 
 <script>
-/* ── CURSOR ── */
 const cur = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -521,51 +406,65 @@ document.addEventListener('mouseover',e=>{
   }
 });
 
-/* ── DATA ── */
-const atividades = [
-  { id:1, titulo:'Lista de exercícios cap. 5', materia:'Matemática', tipo:'Lista', prazo:'2026-03-11', prioridade:'alta', done:false },
-  { id:2, titulo:'Projeto final de Banco de Dados', materia:'Banco de Dados', tipo:'Projeto', prazo:'2026-03-20', prioridade:'alta', done:false },
-  { id:3, titulo:'Seminário de Redes', materia:'Redes', tipo:'Seminário', prazo:'2026-03-14', prioridade:'media', done:false },
-  { id:4, titulo:'Leitura artigo IEEE sobre IA', materia:'Programação', tipo:'Leitura', prazo:'2026-03-16', prioridade:'baixa', done:false },
-  { id:5, titulo:'Prova de Física — Eletrostática', materia:'Física', tipo:'Prova', prazo:'2026-03-12', prioridade:'alta', done:false },
-  { id:6, titulo:'Redação dissertativa', materia:'Português', tipo:'Trabalho', prazo:'2026-03-18', prioridade:'media', done:true },
-  { id:7, titulo:'Trabalho de Inglês — Speaking', materia:'Inglês', tipo:'Trabalho', prazo:'2026-03-22', prioridade:'media', done:false },
-  { id:8, titulo:'Exercícios de Química Orgânica', materia:'Química', tipo:'Lista', prazo:'2026-03-10', prioridade:'alta', done:true },
-];
+const API = 'http://localhost:8080';
+function getToken(){ return localStorage.getItem('studyflow_token'); }
+function authHeaders(){ return { 'Content-Type':'application/json', 'Authorization':`Bearer ${getToken()}` }; }
 
 const COLORS = {
   'Matemática':'#4d8ef5','Física':'#7c3aed','Química':'#f43f5e',
   'Programação':'#06d6c0','Banco de Dados':'#f59e0b','Redes':'#f97316',
   'Português':'#10b981','Inglês':'#06b6d4','Outra':'#6b82a8'
 };
-
 const DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const MONTHS_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 const hoje = new Date(); hoje.setHours(0,0,0,0);
-function diffDays(str){ const d=new Date(str+'T00:00:00'); return Math.ceil((d-hoje)/86400000); }
+function diffDays(str){ return Math.ceil((new Date(str+'T00:00:00')-hoje)/86400000); }
 
-/* ── GREETING ── */
+let atividades = [];
+
+async function init() {
+  if (!getToken()) { window.location.href = 'login.html'; return; }
+  try {
+    const res = await fetch(`${API}/api/atividades`, { headers: authHeaders() });
+    if (res.status === 401) { window.location.href = 'login.html'; return; }
+    atividades = await res.json();
+  } catch(err) { atividades = []; }
+
+  initGreeting();
+  initStats();
+  initWeek();
+  initTodayTasks();
+  initRing();
+  initUpcoming();
+  initBarChart();
+}
+
 function initGreeting(){
   const h = new Date().getHours();
-  let period = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-  document.getElementById('greeting-time').textContent = period;
+  document.getElementById('greeting-time').textContent = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   const urgent = atividades.filter(a=>!a.done && diffDays(a.prazo)<=2).length;
   document.getElementById('greeting-sub').textContent = urgent > 0
     ? `Você tem ${urgent} atividade${urgent>1?'s':''} urgente${urgent>1?'s':''} hoje!`
     : 'Tudo em ordem por hoje. Continue assim!';
   const d = new Date();
-  document.getElementById('date-chip-text').textContent =
-    `${DAYS[d.getDay()]}, ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('date-chip-text').textContent = `${DAYS[d.getDay()]}, ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  const nome = localStorage.getItem('studyflow_nome');
+  if (nome) { document.querySelector('.greeting h1 span').textContent = nome; document.querySelector('.sb-name').textContent = nome; }
 }
 
-/* ── WEEK STRIP ── */
+function initStats(){
+  document.getElementById('s-total').textContent = atividades.length;
+  document.getElementById('s-pending').textContent = atividades.filter(a=>!a.done).length;
+  document.getElementById('s-urgent').textContent = atividades.filter(a=>!a.done && diffDays(a.prazo)<=2).length;
+  document.getElementById('s-done').textContent = atividades.filter(a=>a.done).length;
+}
+
 function initWeek(){
   const container = document.getElementById('week-strip');
-  const dow = hoje.getDay(); // 0=dom
+  container.innerHTML = '';
+  const dow = hoje.getDay();
   const monday = new Date(hoje); monday.setDate(hoje.getDate() - ((dow+6)%7));
-
   for(let i=0;i<7;i++){
     const d = new Date(monday); d.setDate(monday.getDate()+i);
     const isToday = d.toDateString() === hoje.toDateString();
@@ -573,34 +472,20 @@ function initWeek(){
     const acts = atividades.filter(a => a.prazo === dayStr);
     const done = acts.filter(a=>a.done).length;
     const pct = acts.length>0 ? (done/acts.length)*100 : 0;
-
     const dots = acts.slice(0,3).map(a=>`<div class="wd-dot" style="background:${COLORS[a.materia]||'#6b82a8'}"></div>`).join('');
-
     const el = document.createElement('div');
     el.className = 'week-day' + (isToday?' today':'');
-    el.innerHTML = `
-      <div class="wd-label">${DAYS[d.getDay()]}</div>
-      <div class="wd-num">${d.getDate()}</div>
-      <div class="wd-dots">${dots}</div>
-      <div class="wd-bar-wrap"><div class="wd-bar" style="width:${pct}%"></div></div>
-    `;
+    el.innerHTML = `<div class="wd-label">${DAYS[d.getDay()]}</div><div class="wd-num">${d.getDate()}</div><div class="wd-dots">${dots}</div><div class="wd-bar-wrap"><div class="wd-bar" style="width:${pct}%"></div></div>`;
     container.appendChild(el);
   }
 }
 
-/* ── TODAY TASKS ── */
 function initTodayTasks(){
   const container = document.getElementById('today-tasks');
-  const todayStr = hoje.toISOString().split('T')[0];
-  // show today + 1 day tasks
+  container.innerHTML = '';
   let tasks = atividades.filter(a=>diffDays(a.prazo)<=1 && !a.done);
   if(tasks.length===0) tasks = atividades.filter(a=>diffDays(a.prazo)<=7 && !a.done).slice(0,4);
-
-  if(tasks.length===0){
-    container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">🎉 Nenhuma tarefa urgente hoje!</div>`;
-    return;
-  }
-
+  if(tasks.length===0){ container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">🎉 Nenhuma tarefa urgente hoje!</div>`; return; }
   tasks.forEach(a=>{
     const d = diffDays(a.prazo);
     let tpClass='tp-blue', tpLabel=`${d}d`;
@@ -608,82 +493,58 @@ function initTodayTasks(){
     else if(d===0){tpClass='tp-amber';tpLabel='Hoje';}
     else if(d===1){tpClass='tp-red';tpLabel='Amanhã';}
     const color = COLORS[a.materia]||'#6b82a8';
-
     const el = document.createElement('div');
     el.className = 'task-item';
     el.innerHTML = `
-      <div class="task-check" onclick="toggleTask(this)" data-id="${a.id}">
+      <div class="task-check ${a.done?'checked':''}" onclick="toggleTask(this,'${a.id}',${a.done})">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
-      <div class="task-info">
-        <div class="task-name">${a.titulo}</div>
-        <div class="task-sub">${a.materia} · ${a.tipo}</div>
-      </div>
-      <div class="task-prazo ${tpClass}">${tpLabel}</div>
-    `;
+      <div class="task-info"><div class="task-name">${a.titulo}</div><div class="task-sub">${a.materia||''} · ${a.tipo||''}</div></div>
+      <div class="task-prazo ${tpClass}">${tpLabel}</div>`;
     container.appendChild(el);
   });
 }
 
-function toggleTask(el){
-  el.classList.toggle('checked');
-  el.closest('.task-item').classList.toggle('done-task');
+async function toggleTask(el, id, currentDone){
+  const atividade = atividades.find(a => a.id === id);
+  if (!atividade) return;
+  try {
+    const res = await fetch(`${API}/api/atividades/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ ...atividade, done: !currentDone }) });
+    if (res.ok) { atividade.done = !currentDone; el.classList.toggle('checked'); el.closest('.task-item').classList.toggle('done-task'); initStats(); initRing(); }
+  } catch(err) { console.error(err); }
 }
 
-/* ── PROGRESS RING ── */
 function initRing(){
   const total = atividades.length;
   const done = atividades.filter(a=>a.done).length;
   const pct = total>0?Math.round((done/total)*100):0;
   const circumference = 2*Math.PI*32;
   const offset = circumference*(1-pct/100);
-
-  setTimeout(()=>{
-    document.getElementById('ring-fg').style.strokeDashoffset = offset;
-    document.getElementById('ring-pct-num').textContent = pct;
-  }, 300);
-
+  setTimeout(()=>{ document.getElementById('ring-fg').style.strokeDashoffset = offset; document.getElementById('ring-pct-num').textContent = pct; }, 300);
   const miniStats = [
     { label:'Concluídas', val:done, max:total, color:'var(--green)' },
     { label:'Pendentes', val:total-done, max:total, color:'var(--amber)' },
     { label:'Urgentes', val:atividades.filter(a=>!a.done&&diffDays(a.prazo)<=2).length, max:total, color:'var(--rose)' },
   ];
   const c = document.getElementById('mini-stats-list');
+  c.innerHTML = '';
   miniStats.forEach(s=>{
     const pctS = s.max>0?Math.round((s.val/s.max)*100):0;
-    c.innerHTML += `
-      <div class="mini-stat-row">
-        <div class="mini-stat-label">${s.label}</div>
-        <div class="mini-stat-bar-wrap"><div class="mini-stat-bar" style="width:0%;background:${s.color}" data-w="${pctS}"></div></div>
-        <div class="mini-stat-val">${s.val}</div>
-      </div>`;
+    c.innerHTML += `<div class="mini-stat-row"><div class="mini-stat-label">${s.label}</div><div class="mini-stat-bar-wrap"><div class="mini-stat-bar" style="width:0%;background:${s.color}" data-w="${pctS}"></div></div><div class="mini-stat-val">${s.val}</div></div>`;
   });
-  setTimeout(()=>{
-    document.querySelectorAll('.mini-stat-bar').forEach(b=>{b.style.width=b.dataset.w+'%';});
-  },400);
+  setTimeout(()=>{ document.querySelectorAll('.mini-stat-bar').forEach(b=>{b.style.width=b.dataset.w+'%';}); },400);
 }
 
-/* ── AI TIP ── */
-function initAiTip(){
-  const urgent = atividades.filter(a=>!a.done&&diffDays(a.prazo)<=2);
-  let tip = '';
-  if(urgent.length>0){
-    tip = `Você tem <strong>${urgent.length} atividade${urgent.length>1?'s':''} urgente${urgent.length>1?'s':''}</strong>. Sugiro priorizar <strong>${urgent[0].titulo}</strong> — prazo ${diffDays(urgent[0].prazo)===0?'hoje':diffDays(urgent[0].prazo)===1?'amanhã':'em breve'}.`;
-  } else {
-    tip = `Ótimo ritmo! Você completou <strong>${atividades.filter(a=>a.done).length} atividades</strong> esta semana. Que tal revisar o conteúdo de <strong>${atividades.filter(a=>!a.done)[0]?.materia||'Programação'}</strong>?`;
-  }
-  document.getElementById('ai-tip').innerHTML = tip;
-}
-
-/* ── UPCOMING ── */
 function initUpcoming(){
   const sorted = [...atividades].filter(a=>!a.done).sort((a,b)=>new Date(a.prazo)-new Date(b.prazo)).slice(0,5);
   const c = document.getElementById('upcoming-list');
+  c.innerHTML = '';
+  if(sorted.length === 0){ c.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">🎉 Nenhum prazo próximo!</div>`; return; }
   sorted.forEach(a=>{
     const d = diffDays(a.prazo);
     const [y,m,day] = a.prazo.split('-');
-    let badgeClass = 'tp-blue', badgeLabel = `${d}d`;
+    let badgeClass='tp-blue', badgeLabel=`${d}d`;
     if(d<0){badgeClass='tp-red';badgeLabel='Atrasada';}
     else if(d===0){badgeClass='tp-amber';badgeLabel='Hoje';}
     else if(d===1){badgeClass='tp-red';badgeLabel='Amanhã';}
@@ -691,67 +552,38 @@ function initUpcoming(){
     const color = COLORS[a.materia]||'#6b82a8';
     c.innerHTML += `
       <div class="upcoming-item">
-        <div class="upcoming-date">
-          <div class="upcoming-day" style="color:${color}">${day}</div>
-          <div class="upcoming-mon">${MONTHS[parseInt(m)-1]}</div>
-        </div>
+        <div class="upcoming-date"><div class="upcoming-day" style="color:${color}">${day}</div><div class="upcoming-mon">${MONTHS[parseInt(m)-1]}</div></div>
         <div style="width:3px;height:32px;background:${color};border-radius:100px;flex-shrink:0"></div>
-        <div class="upcoming-info">
-          <div class="upcoming-title">${a.titulo}</div>
-          <div class="upcoming-sub">${a.materia} · ${a.tipo}</div>
-        </div>
+        <div class="upcoming-info"><div class="upcoming-title">${a.titulo}</div><div class="upcoming-sub">${a.materia||''} · ${a.tipo||''}</div></div>
         <span class="upcoming-badge task-prazo ${badgeClass}">${badgeLabel}</span>
       </div>`;
   });
 }
 
-/* ── BAR CHART ── */
 function initBarChart(){
   const grouped = {};
-  atividades.forEach(a=>{ grouped[a.materia]=(grouped[a.materia]||0)+1; });
+  atividades.forEach(a=>{ if(a.materia) grouped[a.materia]=(grouped[a.materia]||0)+1; });
   const sorted = Object.entries(grouped).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if(sorted.length === 0) return;
   const maxVal = Math.max(...sorted.map(s=>s[1]));
-
   const chartEl = document.getElementById('bar-chart');
   const labelsEl = document.getElementById('bar-labels');
   const listEl = document.getElementById('materia-list');
-
-  sorted.forEach(([mat, count],i)=>{
+  chartEl.innerHTML = ''; labelsEl.innerHTML = ''; listEl.innerHTML = '';
+  sorted.forEach(([mat, count])=>{
     const color = COLORS[mat]||'#6b82a8';
     const pct = (count/maxVal)*100;
-    chartEl.innerHTML += `
-      <div class="bar-col">
-        <div class="bar-val">${count}</div>
-        <div class="bar-fill" style="height:0%;background:${color};opacity:0.85" data-h="${pct}"></div>
-      </div>`;
+    chartEl.innerHTML += `<div class="bar-col"><div class="bar-val" style="font-size:10px;color:var(--muted2)">${count}</div><div class="bar-fill" style="height:0%;background:${color};opacity:0.85" data-h="${pct}"></div></div>`;
     labelsEl.innerHTML += `<div style="font-size:9px;color:var(--muted);font-weight:600;flex:1;text-align:center;">${mat.substring(0,4)}</div>`;
-
     const total = atividades.filter(a=>a.materia===mat).length;
     const done = atividades.filter(a=>a.materia===mat&&a.done).length;
     const pctDone = total>0?Math.round((done/total)*100):0;
-    listEl.innerHTML += `
-      <div class="materia-row">
-        <div class="mat-color" style="background:${color}"></div>
-        <div class="mat-name" style="font-size:12px">${mat}</div>
-        <div class="mat-bar-wrap"><div class="mat-bar" style="width:0%;background:${color}" data-w="${pctDone}"></div></div>
-        <div class="mat-count">${count}</div>
-      </div>`;
+    listEl.innerHTML += `<div class="materia-row"><div class="mat-color" style="background:${color}"></div><div class="mat-name" style="font-size:12px">${mat}</div><div class="mat-bar-wrap"><div class="mat-bar" style="width:0%;background:${color}" data-w="${pctDone}"></div></div><div class="mat-count">${count}</div></div>`;
   });
-
-  setTimeout(()=>{
-    document.querySelectorAll('.bar-fill').forEach(b=>{ b.style.height=b.dataset.h+'%'; });
-    document.querySelectorAll('.mat-bar').forEach(b=>{ b.style.width=b.dataset.w+'%'; });
-  }, 350);
+  setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach(b=>{ b.style.height=b.dataset.h+'%'; }); document.querySelectorAll('.mat-bar').forEach(b=>{ b.style.width=b.dataset.w+'%'; }); }, 350);
 }
 
-/* ── INIT ALL ── */
-initGreeting();
-initWeek();
-initTodayTasks();
-initRing();
-initAiTip();
-initUpcoming();
-initBarChart();
+init();
 </script>
 </body>
 </html>
