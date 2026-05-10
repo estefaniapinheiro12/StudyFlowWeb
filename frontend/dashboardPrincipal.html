@@ -406,7 +406,7 @@ document.addEventListener('mouseover',e=>{
   }
 });
 
-const API = 'http://localhost:8080';
+const API = 'https://studyflow-backend-9sqw.onrender.com';
 function getToken(){ return localStorage.getItem('studyflow_token'); }
 function authHeaders(){ return { 'Content-Type':'application/json', 'Authorization':`Bearer ${getToken()}` }; }
 

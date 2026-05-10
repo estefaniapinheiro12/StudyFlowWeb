@@ -575,7 +575,7 @@ function cursorNorm(){cur.style.width='10px';cur.style.height='10px';ring.style.
 document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,input,select,textarea,.activity-item,.chip,.act-check'))cursorHover();else cursorNorm();});
 
 /* ─── API ─────────────────────────────────────── */
-const API = 'http://localhost:8080';
+const API = 'https://studyflow-backend-9sqw.onrender.com';
 
 function getToken() {
     return localStorage.getItem('studyflow_token');
