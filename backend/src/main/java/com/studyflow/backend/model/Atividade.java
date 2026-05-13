@@ -35,8 +35,7 @@ public class Atividade {
 
     @ElementCollection
     @CollectionTable(name = "subtasks", joinColumns = @JoinColumn(name = "atividade_id"))
-    @Column(name = "subtask")
-    private List<String> subtasks = new ArrayList<>();
+    private List<Subtask> subtasks = new ArrayList<>();
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();

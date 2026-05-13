@@ -15,5 +15,11 @@ public class AtividadeDTO {
     private String prioridade;
     private boolean done;
     private String notes;
-    private List<String> subtasks;
+    private List<SubtaskDTO> subtasks;
+
+    @Data
+    public static class SubtaskDTO {
+        private String texto;
+        private boolean done;
+    }
 }

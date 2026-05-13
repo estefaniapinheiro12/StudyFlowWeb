@@ -2,6 +2,7 @@ package com.studyflow.backend.service;
 
 import com.studyflow.backend.dto.AtividadeDTO;
 import com.studyflow.backend.model.Atividade;
+import com.studyflow.backend.model.Subtask;
 import com.studyflow.backend.model.User;
 import com.studyflow.backend.repository.AtividadeRepository;
 import com.studyflow.backend.repository.UserRepository;
@@ -34,15 +35,7 @@ public class AtividadeService {
     public AtividadeDTO criar(AtividadeDTO dto) {
         User user = getUsuarioLogado();
         Atividade a = new Atividade();
-        a.setTitulo(dto.getTitulo());
-        a.setDescricao(dto.getDescricao());
-        a.setMateria(dto.getMateria());
-        a.setTipo(dto.getTipo());
-        a.setPrazo(dto.getPrazo());
-        a.setPrioridade(dto.getPrioridade());
-        a.setDone(dto.isDone());
-        a.setNotes(dto.getNotes());
-        a.setSubtasks(dto.getSubtasks() != null ? dto.getSubtasks() : List.of());
+        preencherAtividade(a, dto);
         a.setUser(user);
         return toDTO(atividadeRepository.save(a));
     }
@@ -50,6 +43,15 @@ public class AtividadeService {
     public AtividadeDTO atualizar(String id, AtividadeDTO dto) {
         Atividade a = atividadeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Atividade não encontrada"));
+        preencherAtividade(a, dto);
+        return toDTO(atividadeRepository.save(a));
+    }
+
+    public void deletar(String id) {
+        atividadeRepository.deleteById(id);
+    }
+
+    private void preencherAtividade(Atividade a, AtividadeDTO dto) {
         a.setTitulo(dto.getTitulo());
         a.setDescricao(dto.getDescricao());
         a.setMateria(dto.getMateria());
@@ -58,12 +60,11 @@ public class AtividadeService {
         a.setPrioridade(dto.getPrioridade());
         a.setDone(dto.isDone());
         a.setNotes(dto.getNotes());
-        a.setSubtasks(dto.getSubtasks() != null ? dto.getSubtasks() : List.of());
-        return toDTO(atividadeRepository.save(a));
-    }
-
-    public void deletar(String id) {
-        atividadeRepository.deleteById(id);
+        a.setSubtasks(dto.getSubtasks() != null
+            ? dto.getSubtasks().stream()
+                .map(s -> new Subtask(s.getTexto(), s.isDone()))
+                .collect(Collectors.toList())
+            : List.of());
     }
 
     private AtividadeDTO toDTO(Atividade a) {
@@ -77,7 +78,16 @@ public class AtividadeService {
         dto.setPrioridade(a.getPrioridade());
         dto.setDone(a.isDone());
         dto.setNotes(a.getNotes());
-        dto.setSubtasks(a.getSubtasks());
+        dto.setSubtasks(a.getSubtasks() != null
+            ? a.getSubtasks().stream()
+                .map(s -> {
+                    AtividadeDTO.SubtaskDTO sub = new AtividadeDTO.SubtaskDTO();
+                    sub.setTexto(s.getTexto());
+                    sub.setDone(s.isDone());
+                    return sub;
+                })
+                .collect(Collectors.toList())
+            : List.of());
         return dto;
     }
 }
