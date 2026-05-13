@@ -435,29 +435,60 @@ document.addEventListener('mouseover',e=>{
   }
 });
 
-/* ── DATA ── */
+/* ── CONFIG ── */
+const API='https://studyflow-backend-9sqw.onrender.com';
 const COLORS={'Matemática':'#4d8ef5','Física':'#7c3aed','Química':'#f43f5e','Programação':'#06d6c0','Banco de Dados':'#f59e0b','Redes':'#f97316','Português':'#10b981','Inglês':'#06b6d4','Outra':'#6b82a8'};
 
-let tasks=[
-  {id:1,titulo:'Lista de exercícios cap. 5',desc:'Exercícios 1–20 do livro de cálculo diferencial',materia:'Matemática',tipo:'Lista',prazo:'2026-03-11',prioridade:'alta',done:false,
-    subtasks:[{t:'Exercícios 1–7',done:true},{t:'Exercícios 8–14',done:true},{t:'Exercícios 15–20',done:false}],notes:''},
-  {id:2,titulo:'Projeto final de Banco de Dados',desc:'Modelagem ER + implementação SQL completa',materia:'Banco de Dados',tipo:'Projeto',prazo:'2026-03-20',prioridade:'alta',done:false,
-    subtasks:[{t:'Diagrama ER',done:true},{t:'Normalização 3FN',done:false},{t:'Scripts SQL',done:false},{t:'Relatório final',done:false}],notes:''},
-  {id:3,titulo:'Seminário de Redes',desc:'Apresentação sobre camada de transporte TCP/UDP',materia:'Redes',tipo:'Seminário',prazo:'2026-03-14',prioridade:'media',done:false,
-    subtasks:[{t:'Pesquisa de conteúdo',done:true},{t:'Slides (10 páginas)',done:false},{t:'Ensaio da apresentação',done:false}],notes:'Máximo 10 minutos'},
-  {id:4,titulo:'Leitura artigo IEEE sobre IA',desc:'',materia:'Programação',tipo:'Leitura',prazo:'2026-03-16',prioridade:'baixa',done:false,
-    subtasks:[{t:'Ler introdução e metodologia',done:false},{t:'Anotar pontos principais',done:false}],notes:''},
-  {id:5,titulo:'Prova de Física — Eletrostática',desc:'Capítulos 8 e 9 do livro Halliday',materia:'Física',tipo:'Prova',prazo:'2026-03-12',prioridade:'alta',done:false,
-    subtasks:[{t:'Reler cap. 8',done:true},{t:'Reler cap. 9',done:false},{t:'Fazer lista de fórmulas',done:false},{t:'Resolver exercícios antigos',done:false}],notes:'Prova às 13h sala 8'},
-  {id:6,titulo:'Redação dissertativa',desc:'Tema: Tecnologia e privacidade de dados',materia:'Português',tipo:'Trabalho',prazo:'2026-03-18',prioridade:'media',done:true,
-    subtasks:[{t:'Rascunho inicial',done:true},{t:'Revisão gramatical',done:true},{t:'Versão final',done:true}],notes:'Entregue ✓'},
-  {id:7,titulo:'Trabalho de Inglês — Speaking',desc:'Apresentação oral de 3 minutos sobre tecnologia',materia:'Inglês',tipo:'Trabalho',prazo:'2026-03-22',prioridade:'media',done:false,
-    subtasks:[{t:'Escolher tema',done:true},{t:'Roteiro em inglês',done:false},{t:'Praticar pronúncia',done:false}],notes:''},
-  {id:8,titulo:'Exercícios de Química Orgânica',desc:'Lista cap. 12 — Reações orgânicas',materia:'Química',tipo:'Lista',prazo:'2026-03-10',prioridade:'alta',done:true,
-    subtasks:[{t:'Exercícios 1–10',done:true},{t:'Exercícios 11–20',done:true}],notes:'Entregue com 100%'},
-];
-let nextId=9;
-let activeFilter='todas';
+function getToken(){return localStorage.getItem('studyflow_token');}
+function authHeaders(){return{'Content-Type':'application/json','Authorization':'Bearer '+getToken()};}
+
+/* ── STATE ── */
+let tasks=[];
+let filterActive='todas';
+
+/* ── API ── */
+async function carregarTarefas(){
+  try{
+    const res=await fetch(`${API}/api/atividades`,{headers:authHeaders()});
+    if(res.status===401){window.location.href='login.html';return;}
+    const data=await res.json();
+    tasks=data.map(t=>({
+      id:t.id,
+      titulo:t.titulo,
+      desc:t.descricao||'',
+      materia:t.materia||'Outra',
+      tipo:t.tipo||'Outro',
+      prazo:t.prazo,
+      prioridade:t.prioridade||'media',
+      done:t.done,
+      subtasks:(t.subtasks||[]).map(s=>({t:s.texto,done:s.done})),
+      notes:t.notes||''
+    }));
+    render();
+  }catch(err){showToast('⚠️ Erro ao carregar tarefas');}
+}
+
+async function salvarTarefa(task){
+  const body={
+    titulo:task.titulo,descricao:task.desc,materia:task.materia,
+    tipo:task.tipo,prazo:task.prazo,prioridade:task.prioridade,
+    done:task.done,notes:task.notes,
+    subtasks:task.subtasks.map(s=>({texto:s.t,done:s.done}))
+  };
+  if(task.id&&typeof task.id==='string'&&task.id.length>10){
+    // update
+    await fetch(`${API}/api/atividades/${task.id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify(body)});
+  } else {
+    // create
+    const res=await fetch(`${API}/api/atividades`,{method:'POST',headers:authHeaders(),body:JSON.stringify(body)});
+    const data=await res.json();
+    task.id=data.id;
+  }
+}
+
+async function deletarTarefa(id){
+  await fetch(`${API}/api/atividades/${id}`,{method:'DELETE',headers:authHeaders()});
+}
 
 /* ── UTILS ── */
 function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
@@ -480,7 +511,6 @@ function isUrgent(t){return !t.done&&diffDays(t.prazo)<=2;}
 function isInProgress(t){return !t.done&&taskPct(t)>0&&taskPct(t)<100;}
 
 /* ── FILTER ── */
-let filterActive='todas';
 function setFilter(f,btn){
   filterActive=f;
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
@@ -492,20 +522,14 @@ function setFilter(f,btn){
 function render(){
   const search=document.getElementById('search').value.toLowerCase();
   let list=[...tasks];
-
   if(filterActive==='urgentes') list=list.filter(t=>isUrgent(t));
   else if(filterActive==='andamento') list=list.filter(t=>isInProgress(t));
   else if(filterActive==='concluidas') list=list.filter(t=>t.done);
-
   if(search) list=list.filter(t=>t.titulo.toLowerCase().includes(search)||t.materia.toLowerCase().includes(search));
-
-  // Sort: urgentes primeiro, depois por prazo, done por último
   list.sort((a,b)=>{
     if(a.done!==b.done)return a.done?1:-1;
     return new Date(a.prazo)-new Date(b.prazo);
   });
-
-  // Group
   const grupos={urgentes:[],andamento:[],pendentes:[],concluidas:[]};
   list.forEach(t=>{
     if(t.done) grupos.concluidas.push(t);
@@ -513,17 +537,14 @@ function render(){
     else if(isInProgress(t)) grupos.andamento.push(t);
     else grupos.pendentes.push(t);
   });
-
   const scroll=document.getElementById('task-scroll');
   scroll.innerHTML='';
-
   const defs=[
     {key:'urgentes',label:'🔴 Urgentes',color:'var(--rose)'},
     {key:'andamento',label:'🟡 Em andamento',color:'var(--amber)'},
     {key:'pendentes',label:'⚪ Pendentes',color:'var(--muted)'},
     {key:'concluidas',label:'✅ Concluídas',color:'var(--green)'},
   ];
-
   let totalRendered=0;
   defs.forEach(g=>{
     const items=grupos[g.key];
@@ -532,18 +553,14 @@ function render(){
     const grp=document.createElement('div');
     grp.className='task-group';
     grp.innerHTML=`<div class="group-label" style="color:${g.color}">${g.label}<div class="group-line"></div><div class="group-count">${items.length}</div></div>`;
-    items.forEach((t,i)=>{
-      grp.appendChild(makeCard(t,i));
-    });
+    items.forEach((t,i)=>{grp.appendChild(makeCard(t,i));});
     scroll.appendChild(grp);
   });
-
   if(!totalRendered){
     scroll.innerHTML=`<div style="text-align:center;padding:60px 24px;color:var(--muted);font-size:14px;">📭 Nenhuma tarefa encontrada</div>`;
   }
-
   updateStats();
-  updateTopSub(list.length);
+  updateTopSub();
 }
 
 /* ── MAKE CARD ── */
@@ -551,25 +568,22 @@ function makeCard(t,idx){
   const pct=taskPct(t);
   const color=COLORS[t.materia]||'#6b82a8';
   const pi=prazoInfo(t);
-  const circ=2*Math.PI*14; // r=14
+  const circ=2*Math.PI*14;
   const offset=circ*(1-pct/100);
-
   const card=document.createElement('div');
   card.className='task-card'+(t.done?' done-card':'');
   card.id='card-'+t.id;
   card.style.animationDelay=(idx*.04)+'s';
-
   const subtasksHtml=t.subtasks.map((s,si)=>`
     <div class="subtask-row">
-      <div class="sub-check ${s.done?'checked':''}" onclick="toggleSub(${t.id},${si})">
+      <div class="sub-check ${s.done?'checked':''}" onclick="toggleSub('${t.id}',${si})">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="sub-label">${s.t}</div>
     </div>`).join('');
-
   card.innerHTML=`
     <div class="task-head">
-      <div class="task-check ${t.done?'checked':''}" onclick="toggleDone(${t.id})">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleDone('${t.id}')">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="task-strip" style="background:${color}"></div>
@@ -593,7 +607,7 @@ function makeCard(t,idx){
         </div>
       </div>
       <div class="task-prazo ${pi.cls}">${pi.label}</div>
-      <button class="expand-btn" onclick="toggleExpand(${t.id})">
+      <button class="expand-btn" onclick="toggleExpand('${t.id}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
     </div>
@@ -608,23 +622,22 @@ function makeCard(t,idx){
           <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Subtarefas</div>
           <div class="subtask-list">${subtasksHtml}</div>
           <div class="add-sub-row">
-            <input class="add-sub-input" type="text" placeholder="+ Adicionar subtarefa..." id="sub-input-${t.id}" onkeydown="addSubKey(event,${t.id})">
-            <button class="add-sub-btn" onclick="addSub(${t.id})">
+            <input class="add-sub-input" type="text" placeholder="+ Adicionar subtarefa..." id="sub-input-${t.id}" onkeydown="addSubKey(event,'${t.id}')">
+            <button class="add-sub-btn" onclick="addSub('${t.id}')">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
         </div>
-        ${t.notes||!t.done?`
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Notas</div>
-          <textarea class="notes-input" placeholder="Anotações rápidas..." onchange="saveNotes(${t.id},this.value)">${t.notes||''}</textarea>
-        </div>`:''}
+          <textarea class="notes-input" placeholder="Anotações rápidas..." onchange="saveNotes('${t.id}',this.value)">${t.notes||''}</textarea>
+        </div>
         <div class="body-actions">
-          <button class="bact-btn bact-del" onclick="deletar(${t.id})">
+          <button class="bact-btn bact-del" onclick="deletar('${t.id}')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             Excluir
           </button>
-          <button class="bact-btn bact-save" onclick="showToast('💾 Salvo!')">
+          <button class="bact-btn bact-save" onclick="salvarTarefaManual('${t.id}')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             Salvar
           </button>
@@ -639,25 +652,29 @@ function toggleExpand(id){
   const card=document.getElementById('card-'+id);
   card.classList.toggle('expanded');
 }
-function toggleDone(id){
+
+async function toggleDone(id){
   const t=tasks.find(x=>x.id===id);
   if(!t)return;
   t.done=!t.done;
   if(t.done) t.subtasks.forEach(s=>s.done=true);
   render();
+  setTimeout(()=>{document.getElementById('card-'+id)?.classList.add('expanded');},10);
+  await salvarTarefa(t);
   showToast(t.done?'✅ Tarefa concluída!':'↩️ Tarefa reaberta');
 }
-function toggleSub(tid,si){
+
+async function toggleSub(tid,si){
   const t=tasks.find(x=>x.id===tid);
   if(!t)return;
   t.subtasks[si].done=!t.subtasks[si].done;
-  // auto-complete if all done
   if(t.subtasks.every(s=>s.done)&&!t.done){t.done=true;showToast('🎉 Todas as subtarefas concluídas!');}
   render();
-  // re-expand
-  setTimeout(()=>{const c=document.getElementById('card-'+tid);if(c)c.classList.add('expanded');},10);
+  setTimeout(()=>{document.getElementById('card-'+tid)?.classList.add('expanded');},10);
+  await salvarTarefa(t);
 }
-function addSub(id){
+
+async function addSub(id){
   const inp=document.getElementById('sub-input-'+id);
   const val=inp?.value.trim();
   if(!val)return;
@@ -665,12 +682,29 @@ function addSub(id){
   if(!t)return;
   t.subtasks.push({t:val,done:false});
   render();
-  setTimeout(()=>{const c=document.getElementById('card-'+id);if(c)c.classList.add('expanded');},10);
+  setTimeout(()=>{document.getElementById('card-'+id)?.classList.add('expanded');},10);
+  await salvarTarefa(t);
 }
+
 function addSubKey(e,id){if(e.key==='Enter'){e.preventDefault();addSub(id);}}
-function saveNotes(id,val){const t=tasks.find(x=>x.id===id);if(t)t.notes=val;}
-function deletar(id){
+
+async function saveNotes(id,val){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  t.notes=val;
+  await salvarTarefa(t);
+}
+
+async function salvarTarefaManual(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  await salvarTarefa(t);
+  showToast('💾 Salvo!');
+}
+
+async function deletar(id){
   if(!confirm('Excluir esta tarefa?'))return;
+  await deletarTarefa(id);
   tasks=tasks.filter(x=>x.id!==id);
   render();
   showToast('🗑️ Tarefa excluída');
@@ -683,12 +717,9 @@ function updateStats(){
   const pct=total>0?Math.round((done/total)*100):0;
   const circ=2*Math.PI*44;
   const offset=circ*(1-pct/100);
-
   document.getElementById('big-pct').textContent=pct+'%';
   document.getElementById('big-ring-fg').style.strokeDashoffset=offset;
   document.getElementById('ring-sub').textContent=`${done} de ${total} tarefas`;
-
-  // mini stats
   const urgent=tasks.filter(t=>isUrgent(t)).length;
   const inprog=tasks.filter(t=>isInProgress(t)).length;
   const pending=tasks.filter(t=>!t.done&&!isInProgress(t)&&!isUrgent(t)).length;
@@ -697,16 +728,13 @@ function updateStats(){
     <div class="ms-row"><div class="ms-dot" style="background:var(--amber)"></div><div class="ms-label">Em andamento</div><div class="ms-val">${inprog}</div></div>
     <div class="ms-row"><div class="ms-dot" style="background:var(--muted)"></div><div class="ms-label">Pendentes</div><div class="ms-val">${pending}</div></div>
     <div class="ms-row"><div class="ms-dot" style="background:var(--green)"></div><div class="ms-label">Concluídas</div><div class="ms-val">${done}</div></div>`;
-
-  // materia progs
   const mats={};
   tasks.forEach(t=>{
     if(!mats[t.materia])mats[t.materia]={total:0,done:0};
     mats[t.materia].total++;
     if(t.done)mats[t.materia].done++;
   });
-  const mp=document.getElementById('mat-progs');
-  mp.innerHTML='';
+  const mp=document.getElementById('mat-progs');mp.innerHTML='';
   Object.entries(mats).sort((a,b)=>b[1].total-a[1].total).forEach(([mat,v])=>{
     const p=Math.round((v.done/v.total)*100);
     const c=COLORS[mat]||'#6b82a8';
@@ -721,7 +749,7 @@ function updateStats(){
   });
 }
 
-function updateTopSub(count){
+function updateTopSub(){
   const done=tasks.filter(t=>t.done).length;
   const pending=tasks.filter(t=>!t.done).length;
   document.getElementById('top-sub').textContent=`${pending} pendente${pending!==1?'s':''} · ${done} concluída${done!==1?'s':''}`;
@@ -733,6 +761,7 @@ function openModal(){
   const t=new Date().toISOString().split('T')[0];
   document.getElementById('m-prazo').min=t;
   document.getElementById('m-prazo').value=t;
+  setTimeout(()=>document.getElementById('m-titulo').focus(),80);
 }
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('show');
@@ -741,7 +770,8 @@ function closeModal(){
   document.getElementById('m-prioridade').value='media';
 }
 function closeOutside(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
-function criarTarefa(){
+
+async function criarTarefa(){
   const titulo=document.getElementById('m-titulo').value.trim();
   const desc=document.getElementById('m-desc').value.trim();
   const materia=document.getElementById('m-materia').value||'Outra';
@@ -750,9 +780,11 @@ function criarTarefa(){
   const prioridade=document.getElementById('m-prioridade').value;
   if(!titulo){document.getElementById('m-titulo').focus();return;}
   if(!prazo){document.getElementById('m-prazo').focus();return;}
-  tasks.push({id:nextId++,titulo,desc,materia,tipo,prazo,prioridade,done:false,subtasks:[],notes:''});
+  const newTask={id:null,titulo,desc,materia,tipo,prazo,prioridade,done:false,subtasks:[],notes:''};
+  tasks.push(newTask);
   closeModal();
   render();
+  await salvarTarefa(newTask);
   showToast('✅ Tarefa criada!');
 }
 
@@ -764,10 +796,8 @@ function showToast(msg){
 }
 
 /* ── INIT ── */
-render();
-setTimeout(()=>{
-  document.querySelectorAll('.mat-fill').forEach(b=>{const w=b.style.width;b.style.width='0';setTimeout(()=>b.style.width=w,50);});
-},100);
+if(!getToken()){window.location.href='login.html';}
+else{carregarTarefas();}
 </script>
 </body>
 </html>
