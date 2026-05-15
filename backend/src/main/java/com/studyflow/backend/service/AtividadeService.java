@@ -9,7 +9,9 @@ import com.studyflow.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import java.util.Comparator;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,13 +60,19 @@ public class AtividadeService {
         a.setTipo(dto.getTipo());
         a.setPrazo(dto.getPrazo());
         a.setPrioridade(dto.getPrioridade());
-        a.setDone(dto.isDone());
         a.setNotes(dto.getNotes());
         a.setSubtasks(dto.getSubtasks() != null
-            ? dto.getSubtasks().stream()
-                .map(s -> new Subtask(s.getTexto(), s.isDone()))
-                .collect(Collectors.toList())
-            : List.of());
+                ? dto.getSubtasks().stream()
+                        .map(s -> new Subtask(s.getTexto(), s.isDone()))
+                        .collect(Collectors.toList())
+                : List.of());
+
+        if (dto.isDone() && !a.isDone()) {
+            a.setCompletedAt(LocalDate.now());
+        } else if (!dto.isDone()) {
+            a.setCompletedAt(null);
+        }
+        a.setDone(dto.isDone());
     }
 
     private AtividadeDTO toDTO(Atividade a) {
@@ -79,15 +87,42 @@ public class AtividadeService {
         dto.setDone(a.isDone());
         dto.setNotes(a.getNotes());
         dto.setSubtasks(a.getSubtasks() != null
-            ? a.getSubtasks().stream()
-                .map(s -> {
-                    AtividadeDTO.SubtaskDTO sub = new AtividadeDTO.SubtaskDTO();
-                    sub.setTexto(s.getTexto());
-                    sub.setDone(s.isDone());
-                    return sub;
-                })
-                .collect(Collectors.toList())
-            : List.of());
+                ? a.getSubtasks().stream()
+                        .map(s -> {
+                            AtividadeDTO.SubtaskDTO sub = new AtividadeDTO.SubtaskDTO();
+                            sub.setTexto(s.getTexto());
+                            sub.setDone(s.isDone());
+                            return sub;
+                        })
+                        .collect(Collectors.toList())
+                : List.of());
         return dto;
+    }
+
+    public int calcularStreak() {
+        User user = getUsuarioLogado();
+        List<LocalDate> dias = atividadeRepository.findByUserOrderByPrazoAsc(user)
+                .stream()
+                .filter(a -> a.getCompletedAt() != null)
+                .map(Atividade::getCompletedAt)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        if (dias.isEmpty())
+            return 0;
+
+        int streak = 0;
+        LocalDate esperado = LocalDate.now();
+
+        for (LocalDate dia : dias) {
+            if (dia.equals(esperado) || dia.equals(esperado.minusDays(1))) {
+                streak++;
+                esperado = dia.minusDays(1);
+            } else {
+                break;
+            }
+        }
+        return streak;
     }
 }

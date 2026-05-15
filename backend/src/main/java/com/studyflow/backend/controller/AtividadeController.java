@@ -36,4 +36,9 @@ public class AtividadeController {
         atividadeService.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/streak")
+    public ResponseEntity<Integer> streak() {
+        return ResponseEntity.ok(atividadeService.calcularStreak());
+    }
 }
