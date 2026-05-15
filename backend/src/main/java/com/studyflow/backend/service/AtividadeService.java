@@ -67,9 +67,11 @@ public class AtividadeService {
                         .collect(Collectors.toList())
                 : List.of());
 
-        if (dto.isDone() && !a.isDone()) {
-            a.setCompletedAt(LocalDate.now());
-        } else if (!dto.isDone()) {
+        if (dto.isDone()) {
+            if (a.getCompletedAt() == null) {
+                a.setCompletedAt(LocalDate.now());
+            }
+        } else {
             a.setCompletedAt(null);
         }
         a.setDone(dto.isDone());

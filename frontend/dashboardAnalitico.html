@@ -428,16 +428,71 @@ document.addEventListener('mouseover',e=>{
   else{cur.style.width='10px';cur.style.height='10px';ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(77,142,245,.35)';}
 });
 
-/* ── COLORS ── */
-const C={
-  blue:'#4d8ef5',cyan:'#06d6c0',violet:'#7c3aed',
-  amber:'#f59e0b',rose:'#f43f5e',green:'#10b981',orange:'#f97316',
-  indigo:'#6366f1',pink:'#ec4899',teal:'#14b8a6'
-};
-const MATERIA_C={'Matemática':C.blue,'Física':C.violet,'Química':C.rose,'Programação':C.cyan,'Banco de Dados':C.amber,'Redes':C.orange,'Português':C.green,'Inglês':C.teal};
+/* ── CONFIG ── */
+const API='https://studyflow-backend-9sqw.onrender.com';
+const C={blue:'#4d8ef5',cyan:'#06d6c0',violet:'#7c3aed',amber:'#f59e0b',rose:'#f43f5e',green:'#10b981',orange:'#f97316',indigo:'#6366f1',pink:'#ec4899',teal:'#14b8a6'};
+const MATERIA_C={'Matemática':C.blue,'Física':C.violet,'Química':C.rose,'Programação':C.cyan,'Banco de Dados':C.amber,'Redes':C.orange,'Português':C.green,'Inglês':C.teal,'Outra':'#6b82a8'};
+
+function getToken(){return localStorage.getItem('studyflow_token');}
+function authHeaders(){return{'Content-Type':'application/json','Authorization':'Bearer '+getToken()};}
+
+/* ── STATE ── */
+let tasks=[];
+let streak=0;
+let currentPeriod='mes';
+
+/* ── LOAD DATA ── */
+async function loadData(){
+  if(!getToken()){window.location.href='login.html';return;}
+  try{
+    const [tasksRes,streakRes]=await Promise.all([
+      fetch(`${API}/api/atividades`,{headers:authHeaders()}),
+      fetch(`${API}/api/atividades/streak`,{headers:authHeaders()})
+    ]);
+    if(tasksRes.status===401){window.location.href='login.html';return;}
+    tasks=await tasksRes.json();
+    streak=await streakRes.json();
+    renderAll();
+  }catch(e){console.error(e);}
+}
+
+/* ── RENDER ALL ── */
+function renderAll(){
+  updateSidebar();
+  updateKPIs();
+  drawLineChart(currentPeriod);
+  drawDonut();
+  drawMateriaBars();
+  drawInsights();
+  drawHeatmap();
+  drawHourChart();
+  drawRadar();
+}
+
+/* ── SIDEBAR STREAK ── */
+function updateSidebar(){
+  const el=document.querySelector('.streak-num');
+  if(el)el.textContent=streak;
+}
+
+/* ── KPIs ── */
+function updateKPIs(){
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.done).length;
+  const pct=total>0?Math.round((done/total)*100):0;
+
+  // taxa de conclusão
+  const kpis=document.querySelectorAll('.kpi');
+  kpis[0].querySelector('.kpi-val').innerHTML=`${pct}<span class="kpi-unit">%</span>`;
+  kpis[1].querySelector('.kpi-val').innerHTML=`${done}<span class="kpi-unit">tasks</span>`;
+  kpis[2].querySelector('.kpi-val').innerHTML=`${streak}<span class="kpi-unit">dias</span>`;
+  kpis[2].querySelector('.kpi-trend').textContent=streak>=7?'↑ ótima sequência!':streak>=3?'↑ continue assim!':'→ comece hoje!';
+  kpis[2].querySelector('.kpi-trend').className='kpi-trend '+(streak>=3?'up':'');
+}
 
 /* ── PERIOD ── */
 function setPeriod(p,btn){
+  currentPeriod=p;
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   drawLineChart(p);
@@ -451,22 +506,46 @@ function drawLineChart(period='mes'){
   canvas.width=W*window.devicePixelRatio||W;
   canvas.height=140*window.devicePixelRatio||140;
   ctx.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);
-  const w=W, h=140;
+  const w=W,h=140;
 
-  const datasets={
-    semana:{labels:['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],vals:[2,1,3,2,4,1,2],vals2:[3,2,2,3,3,2,3]},
-    mes:{labels:['S1','S2','S3','S4','S5','S6','S7','S8'],vals:[3,5,4,7,6,8,5,9],vals2:[4,4,6,5,7,6,8,7]},
-    semestre:{labels:['Jan','Fev','Mar','Abr','Mai','Jun'],vals:[8,12,15,11,18,14],vals2:[10,11,13,14,16,13]},
-  };
-  const d=datasets[period];
-  const n=d.labels.length;
+  // Calcular dados reais por semana/mês
+  const now=new Date();
+  let labels=[];
+  let vals=[];
+
+  if(period==='semana'){
+    labels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    vals=Array(7).fill(0);
+    tasks.filter(t=>t.done&&t.prazo).forEach(t=>{
+      const d=new Date(t.prazo+'T12:00:00');
+      const diff=Math.floor((now-d)/86400000);
+      if(diff>=0&&diff<7) vals[d.getDay()]++;
+    });
+  } else if(period==='mes'){
+    labels=['S1','S2','S3','S4','S5','S6','S7','S8'];
+    vals=Array(8).fill(0);
+    tasks.filter(t=>t.done&&t.prazo).forEach(t=>{
+      const d=new Date(t.prazo+'T12:00:00');
+      const diff=Math.floor((now-d)/7/86400000);
+      if(diff>=0&&diff<8) vals[7-diff]++;
+    });
+  } else {
+    labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    labels=labels.slice(0,now.getMonth()+1);
+    vals=Array(labels.length).fill(0);
+    tasks.filter(t=>t.done&&t.prazo).forEach(t=>{
+      const d=new Date(t.prazo+'T12:00:00');
+      if(d.getFullYear()===now.getFullYear()) vals[d.getMonth()]++;
+    });
+  }
+
+  const n=labels.length;
   const pad={t:16,r:16,b:30,l:28};
-  const cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
-  const maxVal=Math.max(...d.vals,...d.vals2)+2;
+  const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+  const maxVal=Math.max(...vals,1)+1;
 
   ctx.clearRect(0,0,w,h);
 
-  // grid
   for(let i=0;i<=4;i++){
     const y=pad.t+ch*(1-i/4);
     ctx.strokeStyle='rgba(100,160,255,0.06)';ctx.lineWidth=1;
@@ -475,59 +554,58 @@ function drawLineChart(period='mes'){
     ctx.fillText(Math.round(maxVal*i/4),pad.l-4,y+3);
   }
 
-  // x labels
   ctx.fillStyle='rgba(107,130,168,.8)';ctx.font=`10px "Cabinet Grotesk"`;ctx.textAlign='center';
-  d.labels.forEach((l,i)=>{
-    const x=pad.l+cw*(i/(n-1));
+  labels.forEach((l,i)=>{
+    const x=pad.l+cw*(i/(n-1||1));
     ctx.fillText(l,x,h-pad.b+14);
   });
 
-  function drawLine(vals,color,fill){
-    const pts=vals.map((v,i)=>({x:pad.l+cw*(i/(n-1)),y:pad.t+ch*(1-v/maxVal)}));
-    // fill
-    if(fill){
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x,pts[0].y);
-      pts.forEach(p=>ctx.lineTo(p.x,p.y));
-      ctx.lineTo(pts[pts.length-1].x,pad.t+ch);
-      ctx.lineTo(pts[0].x,pad.t+ch);
-      ctx.closePath();
-      const g=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
-      g.addColorStop(0,color.replace(')',',0.18)').replace('rgb','rgba'));
-      g.addColorStop(1,'rgba(5,8,15,0)');
-      ctx.fillStyle=g;ctx.fill();
-    }
-    // line
-    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-    for(let i=1;i<pts.length;i++){
-      const mx2=(pts[i-1].x+pts[i].x)/2;
-      ctx.bezierCurveTo(mx2,pts[i-1].y,mx2,pts[i].y,pts[i].x,pts[i].y);
-    }
-    ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
-    // dots
-    pts.forEach(p=>{
-      ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);
-      ctx.fillStyle=color;ctx.fill();
-      ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);
-      ctx.fillStyle='#05080f';ctx.fill();
-    });
-  }
+  const pts=vals.map((v,i)=>({x:pad.l+cw*(i/(n-1||1)),y:pad.t+ch*(1-v/maxVal)}));
 
-  drawLine(d.vals2,'rgba(124,58,237,.6)',false);
-  drawLine(d.vals,C.blue,true);
+  // fill
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,pts[0].y);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,pad.t+ch);
+  ctx.lineTo(pts[0].x,pad.t+ch);
+  ctx.closePath();
+  const g=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
+  g.addColorStop(0,'rgba(77,142,245,.18)');
+  g.addColorStop(1,'rgba(5,8,15,0)');
+  ctx.fillStyle=g;ctx.fill();
+
+  // line
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){
+    const mx2=(pts[i-1].x+pts[i].x)/2;
+    ctx.bezierCurveTo(mx2,pts[i-1].y,mx2,pts[i].y,pts[i].x,pts[i].y);
+  }
+  ctx.strokeStyle=C.blue;ctx.lineWidth=2.5;ctx.stroke();
+
+  // dots
+  pts.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    ctx.fillStyle=C.blue;ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);
+    ctx.fillStyle='#05080f';ctx.fill();
+  });
 }
 
-/* ── DONUT CHART ── */
+/* ── DONUT ── */
 function drawDonut(){
-  const data=[
-    {label:'Trabalho',val:10,color:C.blue},
-    {label:'Prova',val:6,color:C.violet},
-    {label:'Lista',val:7,color:C.cyan},
-    {label:'Projeto',val:4,color:C.amber},
-    {label:'Seminário',val:2,color:C.rose},
-    {label:'Leitura',val:2,color:C.green},
-  ];
+  const tipos={};
+  tasks.filter(t=>t.done).forEach(t=>{
+    const tipo=t.tipo||'Outro';
+    tipos[tipo]=(tipos[tipo]||0)+1;
+  });
+
+  const colors=[C.blue,C.violet,C.cyan,C.amber,C.rose,C.green,C.orange,C.teal];
+  const data=Object.entries(tipos).map(([label,val],i)=>({label,val,color:colors[i%colors.length]}));
+  if(!data.length){data.push({label:'Sem dados',val:1,color:'rgba(100,160,255,.1)'});}
+
   const total=data.reduce((s,d)=>s+d.val,0);
+  document.querySelector('.donut-center-val').textContent=total;
+
   const canvas=document.getElementById('donutChart');
   const ctx=canvas.getContext('2d');
   const size=160,cx=80,cy=80,r=62,inner=44,gap=0.025;
@@ -543,8 +621,8 @@ function drawDonut(){
     angle+=sweep+gap;
   });
 
-  // legend
   const lg=document.getElementById('donut-legend');
+  lg.innerHTML='';
   data.forEach(d=>{
     const pct=Math.round((d.val/total)*100);
     lg.innerHTML+=`
@@ -560,25 +638,32 @@ function drawDonut(){
 
 /* ── MATERIA BARS ── */
 function drawMateriaBars(){
-  const data=[
-    {name:'Programação',done:5,total:6,color:C.cyan},
-    {name:'Matemática',done:4,total:5,color:C.blue},
-    {name:'Banco de Dados',done:3,total:5,color:C.amber},
-    {name:'Física',done:3,total:4,color:C.violet},
-    {name:'Português',done:4,total:4,color:C.green},
-    {name:'Redes',done:2,total:4,color:C.orange},
-    {name:'Química',done:2,total:3,color:C.rose},
-  ];
+  const mats={};
+  tasks.forEach(t=>{
+    const m=t.materia||'Outra';
+    if(!mats[m])mats[m]={done:0,total:0};
+    mats[m].total++;
+    if(t.done)mats[m].done++;
+  });
+
   const el=document.getElementById('mbar-list');
-  data.forEach(d=>{
-    const pct=Math.round((d.done/d.total)*100);
+  el.innerHTML='';
+
+  if(!Object.keys(mats).length){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">Nenhuma tarefa ainda</div>';
+    return;
+  }
+
+  Object.entries(mats).sort((a,b)=>b[1].total-a[1].total).forEach(([name,v])=>{
+    const pct=Math.round((v.done/v.total)*100);
+    const color=MATERIA_C[name]||'#6b82a8';
     el.innerHTML+=`
       <div class="mbar-row">
         <div class="mbar-head">
-          <div class="mbar-name" style="font-size:12px">${d.name}</div>
-          <div class="mbar-pct">${d.done}/${d.total} · ${pct}%</div>
+          <div class="mbar-name" style="font-size:12px">${name}</div>
+          <div class="mbar-pct">${v.done}/${v.total} · ${pct}%</div>
         </div>
-        <div class="mbar-track"><div class="mbar-fill" style="width:0%;background:${d.color}" data-w="${pct}"></div></div>
+        <div class="mbar-track"><div class="mbar-fill" style="width:0%;background:${color}" data-w="${pct}"></div></div>
       </div>`;
   });
   setTimeout(()=>document.querySelectorAll('.mbar-fill').forEach(b=>b.style.width=b.dataset.w+'%'),300);
@@ -586,14 +671,51 @@ function drawMateriaBars(){
 
 /* ── INSIGHTS ── */
 function drawInsights(){
-  const items=[
-    {icon:'🚀',color:'rgba(77,142,245,.12)',title:'Melhor semana do mês!',sub:'Você completou 9 atividades na S8, +80% acima da média.'},
-    {icon:'⚠️',color:'rgba(245,158,11,.1)',title:'Redes precisa de atenção',sub:'Apenas 50% das atividades de Redes foram concluídas este mês.'},
-    {icon:'🔥',color:'rgba(244,63,94,.1)',title:'Sequência de 12 dias',sub:'Seu recorde pessoal! Continue assim para alcançar 30 dias.'},
-    {icon:'🌙',color:'rgba(124,58,237,.1)',title:'Você estuda melhor à noite',sub:'Entre 19h–21h você conclui 3x mais atividades que de manhã.'},
-    {icon:'✅',color:'rgba(16,185,129,.1)',title:'Português 100% em dia',sub:'Todas as atividades de Português foram entregues no prazo!'},
-  ];
   const el=document.getElementById('insights-list');
+  el.innerHTML='';
+
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.done).length;
+  const pct=total>0?Math.round((done/total)*100):0;
+
+  const mats={};
+  tasks.forEach(t=>{
+    const m=t.materia||'Outra';
+    if(!mats[m])mats[m]={done:0,total:0};
+    mats[m].total++;
+    if(t.done)mats[m].done++;
+  });
+
+  const items=[];
+
+  // streak insight
+  if(streak>=7) items.push({icon:'🔥',color:'rgba(244,63,94,.1)',title:`${streak} dias seguidos!`,sub:'Incrível sequência de estudos. Continue assim!'});
+  else if(streak>=3) items.push({icon:'🔥',color:'rgba(245,158,11,.1)',title:`${streak} dias de sequência`,sub:'Boa sequência! Estude hoje para continuar crescendo.'});
+  else items.push({icon:'💡',color:'rgba(77,142,245,.1)',title:'Comece sua sequência',sub:'Conclua uma tarefa hoje para iniciar seu streak!'});
+
+  // taxa de conclusão
+  if(pct>=80) items.push({icon:'🚀',color:'rgba(16,185,129,.1)',title:`${pct}% de conclusão!`,sub:'Excelente desempenho! Você está acima da média.'});
+  else if(pct>=50) items.push({icon:'📈',color:'rgba(77,142,245,.1)',title:`${pct}% concluído`,sub:'Bom progresso! Foque nas tarefas urgentes.'});
+  else if(total>0) items.push({icon:'⚠️',color:'rgba(245,158,11,.1)',title:'Tarefas acumulando',sub:`Apenas ${pct}% das tarefas concluídas. Vamos nessa!`});
+
+  // matéria mais fraca
+  const fraca=Object.entries(mats).filter(([,v])=>v.total>0).sort((a,b)=>(a[1].done/a[1].total)-(b[1].done/b[1].total))[0];
+  if(fraca){
+    const [nome,v]=fraca;
+    const p=Math.round((v.done/v.total)*100);
+    if(p<70) items.push({icon:'📚',color:'rgba(124,58,237,.1)',title:`${nome} precisa de atenção`,sub:`Apenas ${p}% das tarefas de ${nome} foram concluídas.`});
+  }
+
+  // matéria mais forte
+  const forte=Object.entries(mats).filter(([,v])=>v.total>0).sort((a,b)=>(b[1].done/b[1].total)-(a[1].done/a[1].total))[0];
+  if(forte){
+    const [nome,v]=forte;
+    const p=Math.round((v.done/v.total)*100);
+    if(p===100) items.push({icon:'✅',color:'rgba(16,185,129,.1)',title:`${nome} 100% em dia!`,sub:`Todas as tarefas de ${nome} foram concluídas!`});
+  }
+
+  if(!items.length) items.push({icon:'📝',color:'rgba(77,142,245,.1)',title:'Crie suas primeiras tarefas',sub:'Adicione tarefas na lista para ver seus insights aqui.'});
+
   items.forEach(i=>{
     el.innerHTML+=`
       <div class="insight-item">
@@ -606,41 +728,37 @@ function drawInsights(){
   });
 }
 
-/* ── HEATMAP ── */
+/* ── HEATMAP (mockado por ora) ── */
 function drawHeatmap(){
   const labels=['D','S','T','Q','Q','S','S'];
   const lEl=document.getElementById('hm-labels');
+  lEl.innerHTML='';
   labels.forEach(l=>lEl.innerHTML+=`<div class="hm-label">${l}</div>`);
-
   const hm=document.getElementById('heatmap');
+  hm.innerHTML='';
   const levels=[0,0,1,2,1,3,2,0,1,3,4,2,1,0,2,3,2,4,3,1,2,1,0,2,3,2,1,4,3,2,1,2,3,2,1];
-  levels.forEach((l,i)=>{
+  levels.forEach(l=>{
     const d=document.createElement('div');
     d.className=`hm-day l${l}`;
-    d.title=`${l} atividade${l!==1?'s':''} concluída${l!==1?'s':''}`;
     hm.appendChild(d);
   });
 }
 
-/* ── HOUR CHART ── */
+/* ── HORA DO DIA (mockado por ora) ── */
 function drawHourChart(){
   const vals=[0,0,0,0,0,0,1,2,1,2,3,2,4,3,2,3,2,1,3,5,6,4,2,1];
   const max=Math.max(...vals);
   const el=document.getElementById('hour-chart');
+  el.innerHTML='';
   const peakH=vals.indexOf(max);
   document.getElementById('best-hour').textContent=`${peakH}h – ${peakH+2}h`;
-
   vals.forEach((v,i)=>{
     const pct=max>0?(v/max)*100:0;
-    const isPeak=v===max;
-    el.innerHTML+=`
-      <div class="hour-col">
-        <div class="hour-bar" style="height:${pct}%;background:${isPeak?C.cyan:'rgba(77,142,245,.4)'}" data-h="${pct}"></div>
-      </div>`;
+    el.innerHTML+=`<div class="hour-col"><div class="hour-bar" style="height:${pct}%;background:${v===max?C.cyan:'rgba(77,142,245,.4)'}"></div></div>`;
   });
 }
 
-/* ── RADAR CHART ── */
+/* ── RADAR (baseado em dados reais) ── */
 function drawRadar(){
   const canvas=document.getElementById('radarChart');
   const ctx=canvas.getContext('2d');
@@ -650,56 +768,59 @@ function drawRadar(){
   ctx.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);
   const w=W,h=180,cx=w/2,cy=h/2,r=70;
 
-  const skills=[
-    {name:'Programação',val:.92,color:C.cyan},
-    {name:'Matemática',val:.78,color:C.blue},
-    {name:'Português',val:1.0,color:C.green},
-    {name:'Física',val:.65,color:C.violet},
-    {name:'Redes',val:.5,color:C.orange},
-    {name:'Banco de Dados',val:.72,color:C.amber},
-  ];
-  const n=skills.length;
+  const mats={};
+  tasks.forEach(t=>{
+    const m=t.materia||'Outra';
+    if(!mats[m])mats[m]={done:0,total:0};
+    mats[m].total++;
+    if(t.done)mats[m].done++;
+  });
 
+  let skills=Object.entries(mats).map(([name,v])=>({
+    name,val:v.total>0?v.done/v.total:0,color:MATERIA_C[name]||'#6b82a8'
+  })).slice(0,6);
+
+  if(!skills.length) skills=[{name:'Sem dados',val:0,color:C.blue}];
+
+  const n=skills.length;
   function pt(i,ratio){
     const a=-Math.PI/2+(i/n)*Math.PI*2;
     return{x:cx+Math.cos(a)*r*ratio,y:cy+Math.sin(a)*r*ratio};
   }
 
-  // grid rings
   [.25,.5,.75,1].forEach(ratio=>{
     ctx.beginPath();
     for(let i=0;i<n;i++){const p=pt(i,ratio);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}
     ctx.closePath();ctx.strokeStyle='rgba(100,160,255,.07)';ctx.lineWidth=1;ctx.stroke();
   });
-  // spokes
   for(let i=0;i<n;i++){
     const p=pt(i,1);
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p.x,p.y);
     ctx.strokeStyle='rgba(100,160,255,.07)';ctx.lineWidth=1;ctx.stroke();
   }
-  // fill
+
   ctx.beginPath();
-  skills.forEach((s,i)=>{const p=pt(i,s.val);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+  skills.forEach((s,i)=>{const p=pt(i,s.val||0.01);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
   ctx.closePath();
   const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
   g.addColorStop(0,'rgba(77,142,245,.25)');g.addColorStop(1,'rgba(6,214,192,.08)');
   ctx.fillStyle=g;ctx.fill();
   ctx.strokeStyle=C.blue;ctx.lineWidth=2;ctx.stroke();
-  // dots
+
   skills.forEach((s,i)=>{
-    const p=pt(i,s.val);
+    const p=pt(i,s.val||0.01);
     ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);
     ctx.fillStyle=s.color;ctx.fill();
   });
-  // labels
+
   ctx.font=`bold 10px "Cabinet Grotesk"`;ctx.fillStyle='rgba(143,160,192,.9)';ctx.textAlign='center';
   skills.forEach((s,i)=>{
     const p=pt(i,1.18);
     ctx.fillText(s.name.substring(0,4),p.x,p.y+3);
   });
 
-  // skills grid
   const sg=document.getElementById('skills-grid');
+  sg.innerHTML='';
   skills.forEach(s=>{
     const pct=Math.round(s.val*100);
     const circumference=2*Math.PI*20;
@@ -709,8 +830,7 @@ function drawRadar(){
           <svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)">
             <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(100,160,255,.08)" stroke-width="4"/>
             <circle cx="26" cy="26" r="20" fill="none" stroke="${s.color}" stroke-width="4"
-              stroke-linecap="round"
-              stroke-dasharray="${circumference}"
+              stroke-linecap="round" stroke-dasharray="${circumference}"
               stroke-dashoffset="${circumference*(1-s.val)}"
               style="transition:stroke-dashoffset .9s ease"/>
           </svg>
@@ -718,20 +838,16 @@ function drawRadar(){
         </div>
         <div class="skill-info">
           <div class="skill-name">${s.name.substring(0,s.name.indexOf(' ')>0?s.name.indexOf(' '):s.name.length)}</div>
-          <div class="skill-sub">${pct >= 80 ? '🟢 Excelente' : pct >= 60 ? '🟡 Bom' : '🔴 Atenção'}</div>
+          <div class="skill-sub">${pct>=80?'🟢 Excelente':pct>=60?'🟡 Bom':'🔴 Atenção'}</div>
         </div>
       </div>`;
   });
 }
 
 /* ── INIT ── */
-window.addEventListener('load',()=>{
-  drawLineChart('mes');
-  drawDonut();
-  drawMateriaBars();
-  drawInsights();
-  drawHeatmap();
-  drawHourChart();
+window.addEventListener('load',()=>loadData());
+window.addEventListener('resize',()=>{
+  drawLineChart(currentPeriod);
   drawRadar();
 });
 window.addEventListener('resize',()=>{ drawLineChart(document.querySelector('.ptab.active')?.textContent==='Semana'?'semana':document.querySelector('.ptab.active')?.textContent==='Semestre'?'semestre':'mes'); drawRadar(); });
