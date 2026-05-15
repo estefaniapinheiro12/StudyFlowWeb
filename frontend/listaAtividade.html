@@ -291,7 +291,7 @@ body{font-family:var(--ff-body);background:var(--ink);color:var(--snow);display:
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> Perfil
 </a>
   <div class="sb-footer">
-    <div class="sb-streak"><span>🔥</span><span class="streak-num">12</span><span>dias seguidos</span></div>
+    <div class="sb-streak"><span>🔥</span><span class="streak-num" id="streak-sidebar"></span><span>dias seguidos</span></div>
   </div>
 </aside>
 
@@ -372,7 +372,7 @@ body{font-family:var(--ff-body);background:var(--ink);color:var(--snow);display:
       <div class="streak-card">
         <div class="streak-icon">🔥</div>
         <div class="streak-info">
-          <div class="streak-big">12 dias</div>
+          <div class="streak-big" id="streak-big">— dias</div>
           <div class="streak-desc">sequência de estudo ativa</div>
         </div>
       </div>
@@ -485,7 +485,15 @@ async function salvarTarefa(task){
     task.id=data.id;
   }
 }
-
+async function carregarStreak(){
+  try{
+    const res=await fetch(`${API}/api/atividades/streak`,{headers:authHeaders()});
+    const dias=await res.json();
+    document.querySelectorAll('#streak-sidebar').forEach(el=>el.textContent=dias);
+    const big=document.getElementById('streak-big');
+    if(big)big.textContent=dias+' dias';
+  }catch(e){}
+}
 async function deletarTarefa(id){
   await fetch(`${API}/api/atividades/${id}`,{method:'DELETE',headers:authHeaders()});
 }
