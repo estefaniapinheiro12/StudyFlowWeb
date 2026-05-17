@@ -767,7 +767,7 @@ function drawHeatmap(){
 function drawHourChart(){
   const vals=Array(24).fill(0);
   tasks.filter(t=>t.completedAt).forEach(t=>{
-    const h=new Date(t.completedAt+'Z').getHours();
+    const h=new Date(t.completedAt).getHours();
     vals[h]++;
   });
 

@@ -69,7 +69,7 @@ public class AtividadeService {
 
         if (dto.isDone()) {
             if (a.getCompletedAt() == null) {
-                a.setCompletedAt(LocalDateTime.now());
+                a.setCompletedAt(LocalDateTime.now(java.time.ZoneId.of("America/Fortaleza")));
             }
         } else {
             a.setCompletedAt(null);
