@@ -1,5 +1,5 @@
 package com.studyflow.backend.dto;
-
+import java.time.LocalDateTime;
 import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +16,7 @@ public class AtividadeDTO {
     private boolean done;
     private String notes;
     private List<SubtaskDTO> subtasks;
+    private LocalDateTime completedAt;
 
     @Data
     public static class SubtaskDTO {

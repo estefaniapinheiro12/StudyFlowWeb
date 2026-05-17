@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.Comparator;
-
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,7 +69,7 @@ public class AtividadeService {
 
         if (dto.isDone()) {
             if (a.getCompletedAt() == null) {
-                a.setCompletedAt(LocalDate.now());
+                a.setCompletedAt(LocalDateTime.now());
             }
         } else {
             a.setCompletedAt(null);
@@ -98,6 +98,7 @@ public class AtividadeService {
                         })
                         .collect(Collectors.toList())
                 : List.of());
+        dto.setCompletedAt(a.getCompletedAt()); // ← adiciona aqui
         return dto;
     }
 
@@ -106,7 +107,7 @@ public class AtividadeService {
         List<LocalDate> dias = atividadeRepository.findByUserOrderByPrazoAsc(user)
                 .stream()
                 .filter(a -> a.getCompletedAt() != null)
-                .map(Atividade::getCompletedAt)
+                .map(a -> a.getCompletedAt().toLocalDate())
                 .distinct()
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());

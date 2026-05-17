@@ -41,7 +41,7 @@ public class Atividade {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "completed_at")
-    private LocalDate completedAt;
+    private LocalDateTime completedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
