@@ -24,6 +24,16 @@ public class User {
     @Column(nullable = false)
     private String senha;
 
+    private String sobrenome;
+    private String curso;
+    private String instituicao;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column(columnDefinition = "TEXT")
+    private String foto;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }
