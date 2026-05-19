@@ -28,12 +28,18 @@ public class PerfilController {
     @PutMapping
     public ResponseEntity<PerfilDTO> updatePerfil(@RequestBody PerfilDTO dto, Authentication auth) {
         User user = userRepository.findByEmail(auth.getName()).orElseThrow();
-        if (dto.getNome() != null) user.setNome(dto.getNome());
-        if (dto.getSobrenome() != null) user.setSobrenome(dto.getSobrenome());
-        if (dto.getCurso() != null) user.setCurso(dto.getCurso());
-        if (dto.getInstituicao() != null) user.setInstituicao(dto.getInstituicao());
-        if (dto.getBio() != null) user.setBio(dto.getBio());
-        if (dto.getFoto() != null) user.setFoto(dto.getFoto());
+        if (dto.getNome() != null)
+            user.setNome(dto.getNome());
+        if (dto.getSobrenome() != null)
+            user.setSobrenome(dto.getSobrenome());
+        if (dto.getCurso() != null)
+            user.setCurso(dto.getCurso());
+        if (dto.getInstituicao() != null)
+            user.setInstituicao(dto.getInstituicao());
+        if (dto.getBio() != null)
+            user.setBio(dto.getBio());
+        if (dto.getFoto() != null)
+            user.setFoto(dto.getFoto());
         return ResponseEntity.ok(toDTO(userRepository.save(user)));
     }
 
@@ -65,7 +71,6 @@ public class PerfilController {
         }
         user.setEmail(novoEmail);
         userRepository.save(user);
-        localStorage.setItem('studyflow_email', novoEmail);
         return ResponseEntity.ok(Map.of("mensagem", "E-mail alterado com sucesso!"));
     }
 
