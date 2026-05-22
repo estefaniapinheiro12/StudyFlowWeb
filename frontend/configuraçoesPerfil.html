@@ -748,7 +748,7 @@
     </a>
     <div class="sb-section">Ferramentas</div>
 
-    <a href="dashboardAnalítico.html" class="sb-item">
+    <a href="dashboardAnalitico.html" class="sb-item">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 20V10M12 20V4M6 20v-6" />
       </svg> Analytics
@@ -858,28 +858,24 @@
           </svg> Informações pessoais</div>
         <div class="card-sub">Seus dados básicos de identificação</div>
         <div class="form-grid" style="margin-bottom:16px">
-          <div class="field"><label>Nome</label><input type="text" value="Estefânia" placeholder="Seu nome"></div>
-          <div class="field"><label>Sobrenome</label><input type="text" value="Pinheiro" placeholder="Seu sobrenome">
-          </div>
-        </div>
-        <div class="form-grid" style="margin-bottom:16px">
           <div class="field"><label>Nome</label><input id="f-nome" type="text" placeholder="Seu nome"></div>
           <div class="field"><label>Sobrenome</label><input id="f-sobrenome" type="text" placeholder="Seu sobrenome">
           </div>
         </div>
-        <div class="form-grid" style="margin-bottom:16px">
-          <div class="field"><label>Curso / Turma</label><input id="f-curso" type="text"></div>
-          <div class="field"><label>Instituição</label><input id="f-instituicao" type="text"
-              placeholder="Nome da sua escola"></div>
-        </div>
-        <div class="form-grid full">
-          <div class="field">
-            <label>Bio</label>
-            <textarea id="f-bio" placeholder="Conte um pouco sobre você..."></textarea>
-            <span class="field-hint">Aparece no seu perfil público. Máximo 160 caracteres.</span>
-          </div>
+      </div>
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="field"><label>Curso / Turma</label><input id="f-curso" type="text"></div>
+        <div class="field"><label>Instituição</label><input id="f-instituicao" type="text"
+            placeholder="Nome da sua escola"></div>
+      </div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>Bio</label>
+          <textarea id="f-bio" placeholder="Conte um pouco sobre você..."></textarea>
+          <span class="field-hint">Aparece no seu perfil público. Máximo 160 caracteres.</span>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- CONTA -->
@@ -1248,9 +1244,24 @@
             document.getElementById('f-nova-senha').value = '';
             document.getElementById('f-confirmar-senha').value = '';
           }
+        } else if (activePanel === 'panel-aparencia') {
+          // Animações reduzidas
+          const toggleAnim = document.querySelectorAll('.toggle input')[4];
+          if (toggleAnim) {
+            const reduzida = toggleAnim.checked;
+            localStorage.setItem('sf_anim', reduzida);
+            document.documentElement.style.setProperty('--anim-dur', reduzida ? '0s' : '0.5s');
+          }
+          // Idioma e formato
+          const selIdioma = document.querySelectorAll('.field select')[0];
+          const selFmt = document.querySelectorAll('.field select')[1];
+          if (selIdioma) localStorage.setItem('sf_idioma', selIdioma.value);
+          if (selFmt) localStorage.setItem('sf_fmt', selFmt.value);
+          showToast('✅ Aparência salva!');
         } else {
           showToast('✅ Preferências salvas!');
         }
+
 
         btn.classList.add('saved');
         btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Salvo!`;
@@ -1261,10 +1272,36 @@
       } catch (e) { showToast('⚠️ Erro ao salvar'); }
     }
 
-    /* ── COR ── */
+    /* ── APARÊNCIA ── */
     function selectColor(el) {
       document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
+      const cor = el.style.background;
+      document.documentElement.style.setProperty('--blue', cor);
+      localStorage.setItem('sf_cor', cor);
+    }
+
+    function aplicarAparencia() {
+      const cor = localStorage.getItem('sf_cor');
+      if (cor) {
+        document.documentElement.style.setProperty('--blue', cor);
+        document.querySelectorAll('.color-opt').forEach(c => {
+          if (c.style.background === cor) c.classList.add('selected');
+          else c.classList.remove('selected');
+        });
+      }
+
+      const animReduzida = localStorage.getItem('sf_anim') === 'true';
+      const toggleAnim = document.querySelectorAll('.toggle input')[4];
+      if (toggleAnim) toggleAnim.checked = animReduzida;
+      if (animReduzida) document.documentElement.style.setProperty('--anim-dur', '0s');
+
+      const idioma = localStorage.getItem('sf_idioma') || 'Português (Brasil)';
+      const fmtData = localStorage.getItem('sf_fmt') || 'DD/MM/AAAA';
+      const selIdioma = document.querySelectorAll('.field select')[0];
+      const selFmt = document.querySelectorAll('.field select')[1];
+      if (selIdioma) Array.from(selIdioma.options).forEach(o => { if (o.text === idioma) o.selected = true; });
+      if (selFmt) Array.from(selFmt.options).forEach(o => { if (o.text === fmtData) o.selected = true; });
     }
 
     /* ── EXCLUIR CONTA ── */
@@ -1285,6 +1322,7 @@
 
     /* ── INIT ── */
     carregarPerfil();
+    aplicarAparencia();
   </script>
 </body>
 
