@@ -1277,7 +1277,27 @@
       document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
       const cor = el.style.background;
+
+      // Aplica em todas as variáveis CSS relevantes
       document.documentElement.style.setProperty('--blue', cor);
+      document.documentElement.style.setProperty('--rim', `${cor}1f`);
+      document.documentElement.style.setProperty('--rim2', `${cor}0f`);
+
+      // Atualiza elementos que usam cores fixas inline
+      document.querySelectorAll('.sb-item.active').forEach(el => {
+        el.style.color = cor;
+        el.style.borderLeftColor = cor;
+        el.style.background = `${cor}12`;
+      });
+      document.querySelectorAll('.streak-num').forEach(el => el.style.color = cor);
+      document.querySelectorAll('#cursor').forEach(el => el.style.background = cor);
+      document.querySelectorAll('.btn-save').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${cor}, #7c3aed)`;
+      });
+      document.querySelectorAll('.avatar-big, .sb-avatar').forEach(el => {
+        if (!el.style.backgroundImage) el.style.background = `linear-gradient(135deg, ${cor}, #7c3aed)`;
+      });
+
       localStorage.setItem('sf_cor', cor);
     }
 
@@ -1288,6 +1308,16 @@
         document.querySelectorAll('.color-opt').forEach(c => {
           if (c.style.background === cor) c.classList.add('selected');
           else c.classList.remove('selected');
+        });
+        document.querySelectorAll('.sb-item.active').forEach(el => {
+          el.style.color = cor;
+          el.style.borderLeftColor = cor;
+          el.style.background = `${cor}12`;
+        });
+        document.querySelectorAll('.streak-num').forEach(el => el.style.color = cor);
+        document.getElementById('cursor').style.background = cor;
+        document.querySelectorAll('.btn-save').forEach(el => {
+          el.style.background = `linear-gradient(135deg, ${cor}, #7c3aed)`;
         });
       }
 
