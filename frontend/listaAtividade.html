@@ -2,6 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+
+<script>
+  if (localStorage.getItem('sf_darkmode') === 'false') {
+    document.documentElement.classList.add('pre-light');
+  }
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudyFlow — Lista de Tarefas</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -30,6 +37,18 @@
 
 /* ── LIGHT MODE ── */
 body.light-mode {
+  --ink: #f4f6fb;
+  --ink2: #e8edf7;
+  --surface: #ffffff;
+  --surface2: #eef1f9;
+  --rim: rgba(50,100,200,0.15);
+  --rim2: rgba(50,100,200,0.08);
+  --snow: #0d1220;
+  --muted: #5a6e8c;
+  --muted2: #3d5175;
+}
+
+html.pre-light body {
   --ink: #f4f6fb;
   --ink2: #e8edf7;
   --surface: #ffffff;
