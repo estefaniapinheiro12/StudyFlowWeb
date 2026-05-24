@@ -1051,7 +1051,8 @@
             <p>Interface com fundo escuro — mais confortável à noite</p>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-darkmode" onchange="toggleDarkMode(this.checked)">
+            <input type="checkbox" id="toggle-darkmode" onchange="toggleDarkMode(this.checked)"
+              onclick="localStorage.setItem('sf_darkmode', this.checked ? 'true' : 'false')">
             <div class="toggle-track"></div>
             <div class="toggle-thumb"></div>
           </label>
@@ -1143,10 +1144,12 @@
     }
 
     function toggleDarkMode(isDark) {
-      localStorage.setItem('sf_darkmode', isDark ? 'true' : 'false');
+      const valor = isDark ? 'true' : 'false';
+      localStorage.setItem('sf_darkmode', valor);
+      /* força leitura imediata para garantir que foi gravado */
+      localStorage.getItem('sf_darkmode');
       document.body.classList.toggle('light-mode', !isDark);
     }
-
     /* ── TABS ── */
     function switchTab(id, btn) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
