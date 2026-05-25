@@ -1051,8 +1051,12 @@
             <p>Interface com fundo escuro — mais confortável à noite</p>
           </div>
           <label class="toggle">
-            <input type="checkbox" id="toggle-darkmode" onchange="toggleDarkMode(this.checked)">
-              onclick="localStorage.setItem('sf_darkmode', this.checked ? 'true' : 'false')">
+            <label class="toggle">
+              <input type="checkbox" id="toggle-darkmode" onchange="toggleDarkMode(this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            onclick="localStorage.setItem('sf_darkmode', this.checked ? 'true' : 'false')">
             <div class="toggle-track"></div>
             <div class="toggle-thumb"></div>
           </label>
