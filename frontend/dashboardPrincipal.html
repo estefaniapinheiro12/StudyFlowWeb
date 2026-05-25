@@ -255,7 +255,7 @@ body {
   </a>
   <div class="sb-footer">
     <div class="sb-streak">
-      <span>🔥</span><span class="streak-num">12</span><span>dias seguidos</span>
+      <span class="streak-num" id="streak-num">—</span>
     </div>
   </div>
 </aside>
@@ -406,6 +406,18 @@ function diffDays(str){ return Math.ceil((new Date(str+'T00:00:00')-hoje)/864000
 
 let atividades = [];
 
+async function carregarStreak() {
+  try {
+    const res = await fetch(`${API}/api/atividades/streak`, { headers: authHeaders() });
+    if (res.ok) {
+      const dias = await res.json();
+      document.getElementById('streak-num').textContent = dias;
+    }
+  } catch(err) {
+    console.error('Erro ao carregar streak:', err);
+  }
+}
+
 async function init() {
   if (!getToken()) { window.location.href = 'login.html'; return; }
   try {
@@ -421,6 +433,7 @@ async function init() {
   initRing();
   initUpcoming();
   initBarChart();
+  carregarStreak(); 
 }
 
 function initGreeting(){
