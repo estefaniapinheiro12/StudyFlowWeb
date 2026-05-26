@@ -1309,11 +1309,13 @@
         <circle cx="12" cy="8" r="4" />
         <path d="M20 21a8 8 0 1 0-16 0" />
       </svg> Perfil</a>
-    <div class="sb-streak">
-      <span>🔥</span>
-      <span class="streak-num" id="streak-num">—</span>
-      <span>dias seguidos</span>
-    </div>
+      <div class="sb-footer">
+  <div class="sb-streak">
+    <span>🔥</span>
+    <span class="streak-num" id="streak-num">—</span>
+    <span>dias seguidos</span>
+  </div>
+</div>
   </aside>
 
   <!-- MAIN -->
@@ -1519,19 +1521,19 @@
       }
     }
 
-    async function carregarStreak() {
-      try {
-        const res = await fetch(`${API}/api/atividades/streak`, { headers: authHeaders() });
-        if (res.ok) {
-          const dias = await res.json();
-          document.getElementById('streak-num').textContent = dias;
-          document.querySelector('.sb-streak span:last-child').textContent = dias === 1 ? 'dia seguido' : 'dias seguidos';
-        }
-      } catch (err) {
-        console.error('Erro ao carregar streak:', err);
-      }
+   async function carregarStreak() {
+  try {
+    const res = await fetch(`${API}/api/atividades/streak`, { headers: authHeaders() });
+    if (res.ok) {
+      const dias = await res.json();
+      document.getElementById('streak-num').textContent = dias;
+      document.querySelector('.sb-streak span:last-child').textContent = dias === 1 ? 'dia seguido' : 'dias seguidos';
+      document.getElementById('streak-big').textContent = dias === 1 ? '1 dia' : `${dias} dias`; // ← adiciona isso
     }
-
+  } catch (err) {
+    console.error('Erro ao carregar streak:', err);
+  }
+}S
     async function deletarTarefa(id) {
       await fetch(`${API}/api/atividades/${id}`, { method: 'DELETE', headers: authHeaders() });
     }
