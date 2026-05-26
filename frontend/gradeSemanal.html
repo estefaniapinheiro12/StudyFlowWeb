@@ -1173,9 +1173,10 @@
       </div>
       <div class="mini-grid" id="mini-grid"></div>
     </div>
-    <div class="sb-footer">
-      <div class="sb-streak"><span>🔥</span><span class="streak-num" id="streak-sidebar">—</span><span>dias
-          seguidos</span></div>
+    <div class="sb-streak">
+      <span>🔥</span>
+      <span class="streak-num" id="streak-num">—</span>
+      <span>dias seguidos</span>
     </div>
   </aside>
 
@@ -1697,11 +1698,14 @@
     async function carregarStreak() {
       try {
         const res = await fetch(`${API}/api/atividades/streak`, { headers: authHeaders() });
-        const dias = await res.json();
-        document.querySelectorAll('#streak-sidebar').forEach(el => el.textContent = dias);
-        const big = document.getElementById('streak-big');
-        if (big) big.textContent = dias + ' dias';
-      } catch (e) { }
+        if (res.ok) {
+          const dias = await res.json();
+          document.getElementById('streak-num').textContent = dias;
+          document.querySelector('.sb-streak span:last-child').textContent = dias === 1 ? 'dia seguido' : 'dias seguidos';
+        }
+      } catch (err) {
+        console.error('Erro ao carregar streak:', err);
+      }
     }
 
 

@@ -778,7 +778,7 @@
     <div class="sb-footer">
       <div class="sb-streak">
         <span>🔥</span>
-        <span class="streak-num">12</span>
+        <span class="streak-num" id="streak-num">—</span>
         <span>dias seguidos</span>
       </div>
     </div>
@@ -1186,6 +1186,7 @@
         const streakRes = await fetch(`${API}/api/atividades/streak`, { headers: authHeaders() });
         const streak = await streakRes.json();
         document.querySelectorAll('.streak-num').forEach(el => el.textContent = streak);
+        document.querySelectorAll('.sb-streak span:last-child').forEach(el => el.textContent = streak === 1 ? 'dia seguido' : 'dias seguidos');
       } catch (e) { console.error(e); }
     }
 
