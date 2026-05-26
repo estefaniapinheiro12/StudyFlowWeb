@@ -1458,14 +1458,8 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    /* ── TEMA — aplica ANTES de qualquer render ── */
-    (function applyTheme() {
-      const dark = localStorage.getItem('sf_darkmode') !== 'false';
-      document.body.classList.toggle('light-mode', !dark);
-    })();
-
-
+  <script src="sf-theme.js">
+   
     /* ── CURSOR ── */
     const cur = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
     let mx = 0, my = 0, rx = 0, ry = 0;
