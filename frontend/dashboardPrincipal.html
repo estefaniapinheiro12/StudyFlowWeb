@@ -1211,6 +1211,7 @@
         if (res.ok) {
           const dias = await res.json();
           document.getElementById('streak-num').textContent = dias;
+          document.querySelector('.sb-streak span:last-child').textContent = dias === 1 ? 'dia seguido' : 'dias seguidos';
         }
       } catch (err) {
         console.error('Erro ao carregar streak:', err);
