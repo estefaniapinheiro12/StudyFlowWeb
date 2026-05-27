@@ -950,6 +950,9 @@
       }
     }
   </style>
+
+  <script src="sf-theme.js"></script>
+
 </head>
 
 <body>
@@ -1168,11 +1171,7 @@
   </main>
 
   <script>
-    /* ── TEMA — aplica ANTES de qualquer render ── */
-    (function applyTheme() {
-      const dark = localStorage.getItem('sf_darkmode') !== 'false';
-      document.body.classList.toggle('light-mode', !dark);
-    })();
+  
 
     /* ── CURSOR ── */
     const cur = document.getElementById('cursor');
