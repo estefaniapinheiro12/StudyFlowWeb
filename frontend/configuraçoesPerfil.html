@@ -1246,7 +1246,10 @@
               bio: document.getElementById('f-bio').value.trim()
             })
           });
+          window.SFProfile.invalidateCache(); // ← aqui: nome/curso mudaram
+          window.SFProfile.load();            // ← atualiza sidebar imediatamente
           showToast('✅ Perfil atualizado!');
+
         } else if (activePanel === 'panel-conta') {
           const novoEmail = document.getElementById('f-novo-email').value.trim();
           const senhaAtual = document.getElementById('f-senha-atual').value;
@@ -1257,6 +1260,8 @@
             const data = await res.json();
             if (!res.ok) { showToast('❌ ' + data.erro); return; }
             localStorage.setItem('studyflow_email', novoEmail);
+            window.SFProfile.invalidateCache(); // ← aqui: e-mail mudou
+            window.SFProfile.load();
             showToast('✅ E-mail atualizado!');
           }
           if (senhaAtual && novaSenha) {
@@ -1265,12 +1270,13 @@
             const data = await res.json();
             if (!res.ok) { showToast('❌ ' + data.erro); return; }
             showToast('✅ Senha alterada!');
+            // senha não aparece na sidebar, não precisa invalidar
             document.getElementById('f-senha-atual').value = '';
             document.getElementById('f-nova-senha').value = '';
             document.getElementById('f-confirmar-senha').value = '';
           }
+
         } else if (activePanel === 'panel-aparencia') {
-          /* Modo escuro já salvo em tempo real via toggleDarkMode() */
           const toggleAnim = document.getElementById('toggle-anim');
           if (toggleAnim) {
             localStorage.setItem('sf_anim', toggleAnim.checked);
@@ -1284,6 +1290,7 @@
         } else {
           showToast('✅ Preferências salvas!');
         }
+
         btn.classList.add('saved');
         btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Salvo!`;
         setTimeout(() => {
