@@ -115,15 +115,23 @@ public class AtividadeService {
         if (dias.isEmpty())
             return 0;
 
+        LocalDate hoje = LocalDate.now();
+        LocalDate maisRecente = dias.get(0);
+
+        // Se a última atividade foi há mais de 1 dia, streak zerou
+        if (!maisRecente.equals(hoje) && !maisRecente.equals(hoje.minusDays(1))) {
+            return 0;
+        }
+
         int streak = 0;
-        LocalDate esperado = LocalDate.now();
+        LocalDate esperado = maisRecente;
 
         for (LocalDate dia : dias) {
-            if (dia.equals(esperado) || dia.equals(esperado.minusDays(1))) {
+            if (dia.equals(esperado)) {
                 streak++;
-                esperado = dia.minusDays(1);
+                esperado = esperado.minusDays(1); // ✅ Só aceita o dia exato anterior
             } else {
-                break;
+                break; // Quebrou a sequência, para
             }
         }
         return streak;
