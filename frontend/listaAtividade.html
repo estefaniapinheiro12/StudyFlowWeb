@@ -1719,8 +1719,45 @@
       if (!titulo) { document.getElementById('m-titulo').focus(); return; }
       const prazo = document.getElementById('m-prazo').value;
       if (!prazo) { document.getElementById('m-prazo').focus(); return; }
-      const newTask = { id: null, titulo, desc: document.getElementById('m-desc').value.trim(), materia: document.getElementById('m-materia').value || 'Outra', tipo: document.getElementById('m-tipo').value, prazo, prioridade: document.getElementById('m-prioridade').value, done: false, subtasks: [], notes: '' };
-      tasks.push(newTask); closeModal(); render(); await salvarTarefa(newTask); showToast('✅ Tarefa criada!');
+
+      const newTask = {
+        id: null,
+        titulo,
+        desc: document.getElementById('m-desc').value.trim(),
+        materia: document.getElementById('m-materia').value || 'Outra',
+        tipo: document.getElementById('m-tipo').value,
+        prazo,
+        prioridade: document.getElementById('m-prioridade').value,
+        done: false,
+        subtasks: [],
+        notes: ''
+      };
+
+      closeModal();
+
+      // Salva primeiro, só depois adiciona ao array e renderiza
+      const res = await fetch(`${API}/api/atividades`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          titulo: newTask.titulo,
+          descricao: newTask.desc,
+          materia: newTask.materia,
+          tipo: newTask.tipo,
+          prazo: newTask.prazo,
+          prioridade: newTask.prioridade,
+          done: false,
+          notes: '',
+          subtasks: []
+        })
+      });
+
+      const data = await res.json();
+      newTask.id = data.id; // ID real do banco
+
+      tasks.push(newTask);
+      render();
+      showToast('✅ Tarefa criada!');
     }
 
     /* ── TOAST ── */
