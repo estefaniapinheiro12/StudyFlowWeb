@@ -1236,7 +1236,8 @@
       const activePanel = document.querySelector('.tab-panel.active').id;
       try {
         if (activePanel === 'panel-perfil') {
-          await fetch(`${API}/api/perfil`, {
+          // DEPOIS (corrigido)
+          const res = await fetch(`${API}/api/perfil`, {
             method: 'PUT', headers: authHeaders(),
             body: JSON.stringify({
               nome: document.getElementById('f-nome').value.trim(),
@@ -1246,8 +1247,15 @@
               bio: document.getElementById('f-bio').value.trim()
             })
           });
-          window.SFProfile.invalidateCache(); // ← aqui: nome/curso mudaram
-          window.SFProfile.load();            // ← atualiza sidebar imediatamente
+          if (!res.ok) { showToast('❌ Erro ao salvar perfil'); return; }
+
+          // Atualiza sidebar/avatar localmente sem depender de SFProfile
+          const nomeCompleto = `${document.getElementById('f-nome').value.trim()} ${document.getElementById('f-sobrenome').value.trim()}`.trim();
+          document.querySelectorAll('.sb-name').forEach(el => el.textContent = nomeCompleto);
+          document.querySelectorAll('.avatar-info h3').forEach(el => el.textContent = nomeCompleto);
+          const curso = document.getElementById('f-curso').value.trim();
+          if (curso) document.querySelectorAll('.sb-role').forEach(el => el.textContent = curso);
+
           showToast('✅ Perfil atualizado!');
 
         } else if (activePanel === 'panel-conta') {
